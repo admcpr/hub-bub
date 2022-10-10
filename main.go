@@ -3,17 +3,20 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/cli/go-gh"
 )
 
-const url = ""
+type user struct {
+	Name  string
+	Login string
+}
 
 type organisation struct {
-	Name string `json:"name"`
-	Url  string `json:"url"`
+	Name         string `json:"name"`
+	Url          string `json:"url"`
+	Repositories []repository
 }
 
 type repository struct {
@@ -22,39 +25,42 @@ type repository struct {
 }
 
 func checkLoginStatus() tea.Msg {
-	args := []string{"auth", "status"}
-	stdOut, _, err := gh.Exec(args...)
-
+	// Use an API helper to grab repository tags
+	client, err := gh.RESTClient(nil)
 	if err != nil {
-		return errMsg{err}
+		return authenticationErrorMsg{err: err}
+	}
+	response := user{}
+
+	err = client.Get("user", &response)
+	if err != nil {
+		fmt.Println(err)
+		return authenticationErrorMsg{err: err}
 	}
 
-	return loginStatusMsg{status: stdOut.String()}
-
-	// return loginStatusMsg{status: "Logged in to github.com as"}
+	return authenticationMsg{User: response}
 }
 
-type loginStatusMsg struct {
-	status string
+type authenticationErrorMsg struct {
+	err error
 }
 
-func (ls loginStatusMsg) loggedIn() bool {
-	return strings.Contains(ls.status, "Logged in to github.com as")
+type authenticationMsg struct {
+	User user
 }
 
 type errMsg struct{ err error }
 
 type model struct {
-	loggedIn bool
-	cursor   int
-	choices  []string
-	selected map[int]struct{}
+	Authenticated bool
+	User          user
+	cursor        int
+	organisations []organisation
+	selected      map[int]struct{}
 }
 
 func initialModel() model {
 	return model{
-		choices: []string{"Buy carrots", "Buy celery", "Buy kohlrabi"},
-
 		// A map which indicates which choices are selected. We're using
 		// the  map like a mathematical set. The keys refer to the indexes
 		// of the `choices` slice, above.
@@ -69,8 +75,13 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
-	case loginStatusMsg:
-		m.loggedIn = msg.loggedIn()
+	case authenticationMsg:
+		m.Authenticated = true
+		m.User = msg.User
+		return m, nil
+
+	case authenticationErrorMsg:
+		m.Authenticated = false
 		return m, nil
 
 	case tea.KeyMsg:
@@ -82,7 +93,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor--
 			}
 		case "down", "j":
-			if m.cursor < len(m.choices)-1 {
+			if m.cursor < len(m.organisations)-1 {
 				m.cursor++
 			}
 		case "enter", " ":
@@ -99,27 +110,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	s := "What should we buy at the market?\n\n"
+	s := fmt.Sprintln("Press q to quit.")
 
-	// for i, choice := range m.choices {
-	// 	cursor := " "
-	// 	if m.cursor == i {
-	// 		cursor = ">"
-	// 	}
-
-	// 	checked := " "
-	// 	if _, ok := m.selected[i]; ok {
-	// 		checked = "x"
-	// 	}
-
-	// 	s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
-	// }
-
-	if !m.loggedIn {
-		s += "\nYou're not logged in to the GitHub CLI, try `gh auth login` \n"
+	if m.Authenticated {
+		s += fmt.Sprintf("Hello %s", m.User.Name)
+	} else {
+		s += fmt.Sprintln("You are not authenticated try running `gh auth login`")
 	}
-
-	s += "\nPress q to quit.\n"
 
 	return s
 }
