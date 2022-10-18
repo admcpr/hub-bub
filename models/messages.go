@@ -4,6 +4,10 @@ type OrgListMsg struct {
 	Organisations []Organisation
 }
 
+type RepositoryListMsg struct {
+	Repositories []Repository
+}
+
 type AuthenticationErrorMsg struct {
 	Err error
 }

@@ -48,13 +48,25 @@ func getOrganisations() tea.Msg {
 	return models.OrgListMsg{Organisations: response}
 }
 
-func initialModel() model {
-	return model{
-		// A map which indicates which choices are selected. We're using
-		// the  map like a mathematical set. The keys refer to the indexes
-		// of the `choices` slice, above.
-		selected: make(map[int]struct{}),
+func getRepositories() tea.Msg {
+	client, err := gh.RESTClient(nil)
+	if err != nil {
+		return models.AuthenticationErrorMsg{Err: err}
 	}
+	response := []models.Repository{}
+
+	// err = client.Get(fmt.Sprintf("user/%s/repos", m.OrganisationTable.SelectedRow()[0]), &response)
+	err = client.Get(fmt.Sprintf("user/%s/repos", "?"), &response)
+	if err != nil {
+		fmt.Println(err)
+		return models.ErrMsg{Err: err}
+	}
+
+	return models.RepositoryListMsg{Repositories: response}
+}
+
+func initialModel() model {
+	return model{}
 }
 
 func buildOrganisationTable(organisations []models.Organisation) table.Model {
@@ -93,9 +105,9 @@ func buildOrganisationTable(organisations []models.Organisation) table.Model {
 type model struct {
 	Authenticated     bool
 	User              models.User
-	Organisations     []models.Organisation
+	SelectedOrgUrl    string
 	OrganisationTable table.Model
-	selected          map[int]struct{}
+	RepositoryTable   table.Model
 }
 
 func (m model) Init() tea.Cmd {
@@ -117,7 +129,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case models.OrgListMsg:
-		m.Organisations = msg.Organisations
 		m.OrganisationTable = buildOrganisationTable(msg.Organisations)
 		return m, nil
 
@@ -126,6 +137,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		case "enter", " ":
+			// return m, getRepositories
 			return m, tea.Batch(
 				tea.Printf("Let's go to %s!", m.OrganisationTable.SelectedRow()[1]),
 			)
@@ -143,12 +155,12 @@ func (m model) View() string {
 	if m.Authenticated {
 		s += fmt.Sprintf("Hello %s\n", m.User.Name)
 	} else {
-		s += fmt.Sprintln("You are not authenticated try running `gh auth login`")
+		return fmt.Sprintln("You are not authenticated try running `gh auth login`")
 	}
 
-	if m.Organisations != nil && len(m.Organisations) > 0 {
-		s += baseStyle.Render(m.OrganisationTable.View()) + "\n"
-	}
+	// if (m.OrganisationTable != table.Model{}) {
+	// 	s += baseStyle.Render(m.OrganisationTable.View()) + "\n"
+	// }
 
 	return s
 }
