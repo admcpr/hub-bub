@@ -64,8 +64,8 @@ func getRepositories() tea.Msg {
 	return RepositoryListMsg{Repositories: response}
 }
 
-func initialModel() model {
-	return model{}
+func initialModel() UserModel {
+	return UserModel{}
 }
 
 func buildOrganisationTable(organisations []Organisation) table.Model {
@@ -99,75 +99,6 @@ func buildOrganisationTable(organisations []Organisation) table.Model {
 	t.SetStyles(s)
 
 	return t
-}
-
-type model struct {
-	Authenticated     bool
-	User              User
-	SelectedOrgUrl    string
-	OrganisationTable table.Model
-	RepositoryTable   table.Model
-}
-
-func (m model) Init() tea.Cmd {
-	return checkLoginStatus
-}
-
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
-
-	switch msg := msg.(type) {
-
-	case AuthenticationMsg:
-		m.Authenticated = true
-		m.User = msg.User
-		return m, getOrganisations
-
-	case AuthenticationErrorMsg:
-		m.Authenticated = false
-		return m, nil
-
-	case OrgListMsg:
-		m.OrganisationTable = buildOrganisationTable(msg.Organisations)
-		return m, nil
-
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
-			return m, tea.Quit
-		case "enter", " ":
-			// m.RepositoryTable, cmd = getRepositories(m.OrganisationTable.SelectedRow()[0])
-
-			return m, cmd
-			// var cmd tea.Cmd
-			// cmd = getRepositories(m.OrganisationTable.SelectedRow()[0])
-
-			// return m, getRepositories
-			// return m, tea.Batch(
-			// 	tea.Printf("Let's go to %s!", m.OrganisationTable.SelectedRow()[1]),4
-			// )
-		}
-	}
-
-	m.OrganisationTable, cmd = m.OrganisationTable.Update(msg)
-
-	return m, cmd
-}
-
-func (m model) View() string {
-	s := fmt.Sprintln("Press q to quit.")
-
-	if m.Authenticated {
-		s += fmt.Sprintf("Hello %s\n", m.User.Name)
-	} else {
-		return fmt.Sprintln("You are not authenticated try running `gh auth login`")
-	}
-
-	// if (m.OrganisationTable != table.Model{}) {
-	// 	s += baseStyle.Render(m.OrganisationTable.View()) + "\n"
-	// }
-
-	return s
 }
 
 func main() {
