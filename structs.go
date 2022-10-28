@@ -1,13 +1,13 @@
-package models
-
-type Repository struct {
-	Name string `json:"name"`
-	Url  string `json:"url"`
-}
+package main
 
 type User struct {
 	Name  string
 	Login string
+}
+
+type Repository struct {
+	Name string `json:"name"`
+	Url  string `json:"url"`
 }
 
 type Organisation struct {

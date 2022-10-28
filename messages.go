@@ -1,15 +1,7 @@
-package models
-
-type OrgListMsg struct {
-	Organisations []Organisation
-}
+package main
 
 type RepositoryListMsg struct {
 	Repositories []Repository
-}
-
-type AuthenticationErrorMsg struct {
-	Err error
 }
 
 type AuthenticationMsg struct {
@@ -17,3 +9,11 @@ type AuthenticationMsg struct {
 }
 
 type ErrMsg struct{ Err error }
+
+type OrgListMsg struct {
+	Organisations []Organisation
+}
+
+type AuthenticationErrorMsg struct {
+	Err error
+}

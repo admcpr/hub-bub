@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/admcpr/hub-bub/models"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -19,57 +18,57 @@ func checkLoginStatus() tea.Msg {
 	// Use an API helper to grab repository tags
 	client, err := gh.RESTClient(nil)
 	if err != nil {
-		return models.AuthenticationErrorMsg{Err: err}
+		return AuthenticationErrorMsg{Err: err}
 	}
-	response := models.User{}
+	response := User{}
 
 	err = client.Get("user", &response)
 	if err != nil {
 		fmt.Println(err)
-		return models.AuthenticationErrorMsg{Err: err}
+		return AuthenticationErrorMsg{Err: err}
 	}
 
-	return models.AuthenticationMsg{User: response}
+	return AuthenticationMsg{User: response}
 }
 
 func getOrganisations() tea.Msg {
 	client, err := gh.RESTClient(nil)
 	if err != nil {
-		return models.AuthenticationErrorMsg{Err: err}
+		return AuthenticationErrorMsg{Err: err}
 	}
-	response := []models.Organisation{}
+	response := []Organisation{}
 
 	err = client.Get("user/orgs", &response)
 	if err != nil {
 		fmt.Println(err)
-		return models.ErrMsg{Err: err}
+		return ErrMsg{Err: err}
 	}
 
-	return models.OrgListMsg{Organisations: response}
+	return OrgListMsg{Organisations: response}
 }
 
 func getRepositories() tea.Msg {
 	client, err := gh.RESTClient(nil)
 	if err != nil {
-		return models.AuthenticationErrorMsg{Err: err}
+		return AuthenticationErrorMsg{Err: err}
 	}
-	response := []models.Repository{}
+	response := []Repository{}
 
 	// err = client.Get(fmt.Sprintf("user/%s/repos", m.OrganisationTable.SelectedRow()[0]), &response)
 	err = client.Get(fmt.Sprintf("user/%s/repos", "?"), &response)
 	if err != nil {
 		fmt.Println(err)
-		return models.ErrMsg{Err: err}
+		return ErrMsg{Err: err}
 	}
 
-	return models.RepositoryListMsg{Repositories: response}
+	return RepositoryListMsg{Repositories: response}
 }
 
 func initialModel() model {
 	return model{}
 }
 
-func buildOrganisationTable(organisations []models.Organisation) table.Model {
+func buildOrganisationTable(organisations []Organisation) table.Model {
 	columns := []table.Column{
 		{Title: "Login", Width: 20},
 		{Title: "Url", Width: 80},
@@ -104,7 +103,7 @@ func buildOrganisationTable(organisations []models.Organisation) table.Model {
 
 type model struct {
 	Authenticated     bool
-	User              models.User
+	User              User
 	SelectedOrgUrl    string
 	OrganisationTable table.Model
 	RepositoryTable   table.Model
@@ -119,16 +118,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 
-	case models.AuthenticationMsg:
+	case AuthenticationMsg:
 		m.Authenticated = true
 		m.User = msg.User
 		return m, getOrganisations
 
-	case models.AuthenticationErrorMsg:
+	case AuthenticationErrorMsg:
 		m.Authenticated = false
 		return m, nil
 
-	case models.OrgListMsg:
+	case OrgListMsg:
 		m.OrganisationTable = buildOrganisationTable(msg.Organisations)
 		return m, nil
 
@@ -137,10 +136,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		case "enter", " ":
+			// m.RepositoryTable, cmd = getRepositories(m.OrganisationTable.SelectedRow()[0])
+
+			return m, cmd
+			// var cmd tea.Cmd
+			// cmd = getRepositories(m.OrganisationTable.SelectedRow()[0])
+
 			// return m, getRepositories
-			return m, tea.Batch(
-				tea.Printf("Let's go to %s!", m.OrganisationTable.SelectedRow()[1]),
-			)
+			// return m, tea.Batch(
+			// 	tea.Printf("Let's go to %s!", m.OrganisationTable.SelectedRow()[1]),4
+			// )
 		}
 	}
 
