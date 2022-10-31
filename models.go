@@ -14,11 +14,10 @@ var models []tea.Model
 
 const (
 	user modelName = iota
-	repository
+	organisation
 )
 
 /* User model */
-
 type UserModel struct {
 	Authenticated     bool
 	User              User
@@ -53,9 +52,13 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		case "enter", " ":
-			// m.RepositoryTable, cmd = getRepositories(m.OrganisationTable.SelectedRow()[0])
+			models[user] = m
+			models[organisation] = OrganisationModel{
+				Title: m.OrganisationTable.SelectedRow()[0],
+				Url:   m.OrganisationTable.SelectedRow()[1],
+			}
 
-			return m, cmd
+			return models[organisation], nil
 			// var cmd tea.Cmd
 			// cmd = getRepositories(m.OrganisationTable.SelectedRow()[0])
 
@@ -74,30 +77,28 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m UserModel) View() string {
 	s := fmt.Sprintln("Press q to quit.")
 
-	if m.Authenticated {
-		s += fmt.Sprintf("Hello %s\n", m.User.Name)
-	} else {
+	if !m.Authenticated {
 		return fmt.Sprintln("You are not authenticated try running `gh auth login`")
 	}
 
-	// if (m.OrganisationTable != table.Model{}) {
-	// 	s += baseStyle.Render(m.OrganisationTable.View()) + "\n"
-	// }
+	s += fmt.Sprintf("Hello %s, press Enter to select an organisation.\n", m.User.Name)
+	s += baseStyle.Render(m.OrganisationTable.View()) + "\n"
 
 	return s
 }
 
 /* Repository model */
-type RepositoryModel struct {
-	SelectedOrgUrl  string
+type OrganisationModel struct {
+	Title           string
+	Url             string
 	RepositoryTable table.Model
 }
 
-func (m RepositoryModel) Init() tea.Cmd {
+func (m OrganisationModel) Init() tea.Cmd {
 	return getRepositories
 }
 
-func (m RepositoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
@@ -123,6 +124,6 @@ func (m RepositoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // View implements tea.Model
-func (RepositoryModel) View() string {
+func (OrganisationModel) View() string {
 	panic("unimplemented")
 }

@@ -10,10 +10,6 @@ import (
 	"github.com/cli/go-gh"
 )
 
-var baseStyle = lipgloss.NewStyle().
-	BorderStyle(lipgloss.NormalBorder()).
-	BorderForeground(lipgloss.Color("240"))
-
 func checkLoginStatus() tea.Msg {
 	// Use an API helper to grab repository tags
 	client, err := gh.RESTClient(nil)
@@ -55,7 +51,7 @@ func getRepositories() tea.Msg {
 	response := []Repository{}
 
 	// err = client.Get(fmt.Sprintf("user/%s/repos", m.OrganisationTable.SelectedRow()[0]), &response)
-	err = client.Get(fmt.Sprintf("user/%s/repos", "?"), &response)
+	err = client.Get("user/admcpr/repos", &response)
 	if err != nil {
 		fmt.Println(err)
 		return ErrMsg{Err: err}
@@ -102,6 +98,8 @@ func buildOrganisationTable(organisations []Organisation) table.Model {
 }
 
 func main() {
+	models = []tea.Model{&UserModel{}, &OrganisationModel{}}
+
 	p := tea.NewProgram(initialModel())
 	if err := p.Start(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
