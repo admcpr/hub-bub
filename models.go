@@ -5,6 +5,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/cli/go-gh"
 )
 
 /* Model management */
@@ -53,19 +54,14 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case "enter", " ":
 			models[user] = m
-			models[organisation] = OrganisationModel{
+			orgModel := &OrganisationModel{
 				Title: m.OrganisationTable.SelectedRow()[0],
 				Url:   m.OrganisationTable.SelectedRow()[1],
 			}
 
-			return models[organisation], nil
-			// var cmd tea.Cmd
-			// cmd = getRepositories(m.OrganisationTable.SelectedRow()[0])
+			models[organisation] = orgModel
 
-			// return m, getRepositories
-			// return m, tea.Batch(
-			// 	tea.Printf("Let's go to %s!", m.OrganisationTable.SelectedRow()[1]),4
-			// )
+			return orgModel, orgModel.GetRepositories
 		}
 	}
 
@@ -95,7 +91,7 @@ type OrganisationModel struct {
 }
 
 func (m OrganisationModel) Init() tea.Cmd {
-	return getRepositories
+	return nil
 }
 
 func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -104,7 +100,7 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case RepositoryListMsg:
-		// m.RepositoryTable = buildRepositoryTable(msg.Repositories)
+		m.RepositoryTable = buildRepositoryTable(msg.Repositories)
 		return m, nil
 
 	case tea.KeyMsg:
@@ -115,6 +111,8 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Batch(
 				tea.Printf("Let's go to %s!", m.RepositoryTable.SelectedRow()[1]),
 			)
+		case "esc":
+			return models[user], nil
 		}
 	}
 
@@ -124,6 +122,23 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // View implements tea.Model
-func (OrganisationModel) View() string {
-	panic("unimplemented")
+func (m OrganisationModel) View() string {
+	return baseStyle.Render(m.RepositoryTable.View()) + "\n"
+}
+
+func (m OrganisationModel) GetRepositories() tea.Msg {
+	client, err := gh.RESTClient(nil)
+	if err != nil {
+		return AuthenticationErrorMsg{Err: err}
+	}
+	response := []Repository{}
+
+	err = client.Get(fmt.Sprintf("orgs/%s/repos", m.Title), &response)
+
+	if err != nil {
+		fmt.Println(err)
+		return ErrMsg{Err: err}
+	}
+
+	return RepositoryListMsg{Repositories: response}
 }
