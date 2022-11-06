@@ -43,15 +43,35 @@ func getOrganisations() tea.Msg {
 	return OrgListMsg{Organisations: response}
 }
 
+func YesNo(b bool) string {
+	if b {
+		return "Yes"
+	}
+	return "No"
+}
+
 func buildRepositoryTable(repositories []Repository) table.Model {
 	columns := []table.Column{
 		{Title: "Name", Width: 20},
-		{Title: "Url", Width: 80},
+		{Title: "Issues", Width: 10},
+		{Title: "Wiki", Width: 10},
+		{Title: "Projects", Width: 10},
+		{Title: "Rebase Merge", Width: 10},
+		{Title: "Auto Merge", Width: 10},
+		{Title: "Delete Branch On Merge", Width: 10},
 	}
 
 	rows := make([]table.Row, len(repositories))
 	for i, repo := range repositories {
-		rows[i] = table.Row{repo.Name, repo.Url}
+		rows[i] = table.Row{
+			repo.Name,
+			YesNo(repo.HasIssues),
+			YesNo(repo.HasWiki),
+			YesNo(repo.HasProjects),
+			YesNo(repo.AllowRebaseMerge),
+			YesNo(repo.AllowAutoMerge),
+			YesNo(repo.DeleteBranchOnMerge),
+		}
 	}
 
 	t := table.New(
