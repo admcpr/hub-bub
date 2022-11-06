@@ -5,6 +5,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/cli/go-gh"
 )
 
 /* Model management */
@@ -14,11 +15,10 @@ var models []tea.Model
 
 const (
 	user modelName = iota
-	repository
+	organisation
 )
 
 /* User model */
-
 type UserModel struct {
 	Authenticated     bool
 	User              User
@@ -53,16 +53,15 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		case "enter", " ":
-			// m.RepositoryTable, cmd = getRepositories(m.OrganisationTable.SelectedRow()[0])
+			models[user] = m
+			orgModel := &OrganisationModel{
+				Title: m.OrganisationTable.SelectedRow()[0],
+				Url:   m.OrganisationTable.SelectedRow()[1],
+			}
 
-			return m, cmd
-			// var cmd tea.Cmd
-			// cmd = getRepositories(m.OrganisationTable.SelectedRow()[0])
+			models[organisation] = orgModel
 
-			// return m, getRepositories
-			// return m, tea.Batch(
-			// 	tea.Printf("Let's go to %s!", m.OrganisationTable.SelectedRow()[1]),4
-			// )
+			return orgModel, orgModel.GetRepositories
 		}
 	}
 
@@ -74,36 +73,34 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m UserModel) View() string {
 	s := fmt.Sprintln("Press q to quit.")
 
-	if m.Authenticated {
-		s += fmt.Sprintf("Hello %s\n", m.User.Name)
-	} else {
+	if !m.Authenticated {
 		return fmt.Sprintln("You are not authenticated try running `gh auth login`")
 	}
 
-	// if (m.OrganisationTable != table.Model{}) {
-	// 	s += baseStyle.Render(m.OrganisationTable.View()) + "\n"
-	// }
+	s += fmt.Sprintf("Hello %s, press Enter to select an organisation.\n", m.User.Name)
+	s += baseStyle.Render(m.OrganisationTable.View()) + "\n"
 
 	return s
 }
 
 /* Repository model */
-type RepositoryModel struct {
-	SelectedOrgUrl  string
+type OrganisationModel struct {
+	Title           string
+	Url             string
 	RepositoryTable table.Model
 }
 
-func (m RepositoryModel) Init() tea.Cmd {
-	return getRepositories
+func (m OrganisationModel) Init() tea.Cmd {
+	return nil
 }
 
-func (m RepositoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
 
 	case RepositoryListMsg:
-		// m.RepositoryTable = buildRepositoryTable(msg.Repositories)
+		m.RepositoryTable = buildRepositoryTable(msg.Repositories)
 		return m, nil
 
 	case tea.KeyMsg:
@@ -114,6 +111,8 @@ func (m RepositoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Batch(
 				tea.Printf("Let's go to %s!", m.RepositoryTable.SelectedRow()[1]),
 			)
+		case "esc":
+			return models[user], nil
 		}
 	}
 
@@ -123,6 +122,23 @@ func (m RepositoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // View implements tea.Model
-func (RepositoryModel) View() string {
-	panic("unimplemented")
+func (m OrganisationModel) View() string {
+	return baseStyle.Render(m.RepositoryTable.View()) + "\n"
+}
+
+func (m OrganisationModel) GetRepositories() tea.Msg {
+	client, err := gh.RESTClient(nil)
+	if err != nil {
+		return AuthenticationErrorMsg{Err: err}
+	}
+	response := []Repository{}
+
+	err = client.Get(fmt.Sprintf("orgs/%s/repos", m.Title), &response)
+
+	if err != nil {
+		fmt.Println(err)
+		return ErrMsg{Err: err}
+	}
+
+	return RepositoryListMsg{Repositories: response}
 }

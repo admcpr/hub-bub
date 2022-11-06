@@ -10,10 +10,6 @@ import (
 	"github.com/cli/go-gh"
 )
 
-var baseStyle = lipgloss.NewStyle().
-	BorderStyle(lipgloss.NormalBorder()).
-	BorderForeground(lipgloss.Color("240"))
-
 func checkLoginStatus() tea.Msg {
 	// Use an API helper to grab repository tags
 	client, err := gh.RESTClient(nil)
@@ -47,25 +43,57 @@ func getOrganisations() tea.Msg {
 	return OrgListMsg{Organisations: response}
 }
 
-func getRepositories() tea.Msg {
-	client, err := gh.RESTClient(nil)
-	if err != nil {
-		return AuthenticationErrorMsg{Err: err}
+func YesNo(b bool) string {
+	if b {
+		return "Yes"
 	}
-	response := []Repository{}
-
-	// err = client.Get(fmt.Sprintf("user/%s/repos", m.OrganisationTable.SelectedRow()[0]), &response)
-	err = client.Get(fmt.Sprintf("user/%s/repos", "?"), &response)
-	if err != nil {
-		fmt.Println(err)
-		return ErrMsg{Err: err}
-	}
-
-	return RepositoryListMsg{Repositories: response}
+	return "No"
 }
 
-func initialModel() UserModel {
-	return UserModel{}
+func buildRepositoryTable(repositories []Repository) table.Model {
+	columns := []table.Column{
+		{Title: "Name", Width: 20},
+		{Title: "Issues", Width: 10},
+		{Title: "Wiki", Width: 10},
+		{Title: "Projects", Width: 10},
+		{Title: "Rebase Merge", Width: 10},
+		{Title: "Auto Merge", Width: 10},
+		{Title: "Delete Branch On Merge", Width: 10},
+	}
+
+	rows := make([]table.Row, len(repositories))
+	for i, repo := range repositories {
+		rows[i] = table.Row{
+			repo.Name,
+			YesNo(repo.HasIssues),
+			YesNo(repo.HasWiki),
+			YesNo(repo.HasProjects),
+			YesNo(repo.AllowRebaseMerge),
+			YesNo(repo.AllowAutoMerge),
+			YesNo(repo.DeleteBranchOnMerge),
+		}
+	}
+
+	t := table.New(
+		table.WithColumns(columns),
+		table.WithRows(rows),
+		table.WithFocused(true),
+		table.WithHeight(len(repositories)),
+	)
+
+	s := table.DefaultStyles()
+	s.Header = s.Header.
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("240")).
+		BorderBottom(true).
+		Bold(false)
+	s.Selected = s.Selected.
+		Foreground(lipgloss.Color("229")).
+		Background(lipgloss.Color("57")).
+		Bold(false)
+	t.SetStyles(s)
+
+	return t
 }
 
 func buildOrganisationTable(organisations []Organisation) table.Model {
@@ -102,7 +130,9 @@ func buildOrganisationTable(organisations []Organisation) table.Model {
 }
 
 func main() {
-	p := tea.NewProgram(initialModel())
+	models = []tea.Model{&UserModel{}, &OrganisationModel{}}
+
+	p := tea.NewProgram(models[user])
 	if err := p.Start(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
