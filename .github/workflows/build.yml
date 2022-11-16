@@ -27,11 +27,9 @@ jobs:
 #     - name: Test
 #       run: go test -v ./...
     
-    - run: ls -a
-    
     - uses: actions/upload-artifact@v3
       with:
         name: Upload Artifacts
-        path: hub-bub[.exe]
+        path: ./hub-bub*
 
 
