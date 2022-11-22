@@ -10,8 +10,7 @@ jobs:
   build_matrix:
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        # os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3   
@@ -26,10 +25,3 @@ jobs:
   
 #     - name: Test
 #       run: go test -v ./...
-    
-    - uses: actions/upload-artifact@v3
-      with:
-        name: Upload Artifacts
-        path: ./hub-bub*
-
-
