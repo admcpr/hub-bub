@@ -20,6 +20,9 @@ jobs:
             goos: windows
     steps:
     - uses: actions/checkout@v3
+    - name: 'Get Latest tag'
+        id: releasetag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
     - uses: wangyoucao577/go-release-action@v1.33
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -27,3 +30,5 @@ jobs:
         goarch: ${{ matrix.goarch }}
         goversion: "1.18"
         extra_files: LICENSE README.md
+        release_tag: ${{ steps.releasetag.outputs.tag }}
+        
