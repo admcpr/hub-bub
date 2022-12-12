@@ -7,11 +7,11 @@ require (
 	github.com/charmbracelet/bubbletea v0.22.1
 	github.com/charmbracelet/lipgloss v0.6.0
 	github.com/cli/go-gh v0.1.1
+	github.com/cli/shurcooL-graphql v0.0.2
 )
 
 require (
 	github.com/cli/safeexec v1.0.0 // indirect
-	github.com/cli/shurcooL-graphql v0.0.2 // indirect
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/henvic/httpretty v0.0.6 // indirect
 	github.com/kr/text v0.2.0 // indirect

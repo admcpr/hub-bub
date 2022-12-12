@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/cli/go-gh"
+	graphql "github.com/cli/shurcooL-graphql"
 )
 
 /* Model management */
@@ -126,19 +128,127 @@ func (m OrganisationModel) View() string {
 	return baseStyle.Render(m.RepositoryTable.View()) + "\n"
 }
 
+// func (m OrganisationModel) GetRepositories() tea.Msg {
+// 	client, err := gh.GQLClient(nil)
+// 	if err != nil {
+// 		return AuthenticationErrorMsg{Err: err}
+// 	}
+// 	response := []Repository{}
+
+// 	var query struct {
+// 		Repository struct {
+// 			Refs struct {
+// 				Nodes []struct {
+// 					Name string
+// 				}
+// 			} `graphql:"refs(refPrefix: $refPrefix, last: $last)"`
+// 		} `graphql:"repository(owner: $owner, name: $name)"`
+// 	}
+// 	variables := map[string]interface{}{
+// 		"refPrefix": graphql.String("refs/tags/"),
+// 		"last":      graphql.Int(30),
+// 		"owner":     graphql.String("cli"),
+// 		"name":      graphql.String("cli"),
+// 	}
+// 	err = client.Query("RepositoryTags", &query, variables)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+
+// 	return RepositoryListMsg{Repositories: response}
+// }
+
 func (m OrganisationModel) GetRepositories() tea.Msg {
-	client, err := gh.RESTClient(nil)
+	client, err := gh.GQLClient(nil)
 	if err != nil {
 		return AuthenticationErrorMsg{Err: err}
 	}
 	response := []Repository{}
 
-	err = client.Get(fmt.Sprintf("orgs/%s/repos", m.Title), &response)
+	// var query struct {
+	// 	Repository struct {
+	// 		Refs struct {
+	// 			Nodes []struct {
+	// 				Name string
+	// 			}
+	// 		} `graphql:"refs(refPrefix: $refPrefix, last: $last)"`
+	// 	} `graphql:"repository(owner: $owner, name: $name)"`
+	// }
 
+	var query struct {
+		Organization struct {
+			Id           string
+			Repositories struct {
+				Edges []struct {
+					Node struct {
+						Name                  string
+						Id                    string
+						HasDiscussionsEnabled bool
+						HasIssuesEnabled      bool
+						HasWikiEnabled        bool
+						IsArchived            bool
+						IsDisabled            bool
+						IsFork                bool
+						IsLocked              bool
+						IsMirror              bool
+						IsPrivate             bool
+						IsTemplate            bool
+					}
+				} `graphql:"edges"`
+			} `graphql:"repositories(first: $first)"`
+		} `graphql:"organization(login: $login)"`
+	}
+
+	variables := map[string]interface{}{
+		"login": graphql.String("bbfc-horizon"),
+		"first": graphql.Int(30),
+	}
+	err = client.Query("Repositories", &query, variables)
 	if err != nil {
-		fmt.Println(err)
-		return ErrMsg{Err: err}
+		log.Fatal(err)
 	}
 
 	return RepositoryListMsg{Repositories: response}
 }
+
+// Full query
+// "{
+// 	organization(login: "bbfc-horizon") {
+// 		repositories(first: 10) {
+// 		edges {
+// 			node {
+// 			id
+// 			name
+// 			defaultBranchRef {
+// 				name
+// 				branchProtectionRule {
+// 				id
+// 				allowsDeletions
+// 				isAdminEnforced
+// 				lockBranch
+// 				requiredApprovingReviewCount
+// 				requiredStatusCheckContexts
+// 				requiresApprovingReviews
+// 				restrictsPushes
+// 				requiresStatusChecks
+// 				}
+// 			}
+// 			hasDiscussionsEnabled
+// 			hasIssuesEnabled
+// 			hasProjectsEnabled
+// 			hasWikiEnabled
+// 			isArchived
+// 			isFork
+// 			visibility
+// 			isSecurityPolicyEnabled
+// 			isPrivate
+// 			vulnerabilityAlerts {
+// 				totalCount
+// 			}
+// 			stargazerCount
+// 			squashMergeAllowed
+// 			}
+// 		}
+// 		}
+// 	}
+// }"
