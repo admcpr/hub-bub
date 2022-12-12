@@ -165,16 +165,6 @@ func (m OrganisationModel) GetRepositories() tea.Msg {
 	}
 	response := []Repository{}
 
-	// var query struct {
-	// 	Repository struct {
-	// 		Refs struct {
-	// 			Nodes []struct {
-	// 				Name string
-	// 			}
-	// 		} `graphql:"refs(refPrefix: $refPrefix, last: $last)"`
-	// 	} `graphql:"repository(owner: $owner, name: $name)"`
-	// }
-
 	var query struct {
 		Organization struct {
 			Id           string
@@ -193,6 +183,27 @@ func (m OrganisationModel) GetRepositories() tea.Msg {
 						IsMirror              bool
 						IsPrivate             bool
 						IsTemplate            bool
+						StargazerCount        int
+						SquashMergeAllowed    bool
+						DefaultBranchRef      struct {
+							Name                 string
+							BranchProtectionRule struct {
+								AllowsDeletions                bool
+								AllowsForcePushes              bool
+								DismissesStaleReviews          bool
+								IsAdminEnforced                bool
+								RequiredApprovingReviewCount   int
+								RequiresApprovingReviews       bool
+								RequiresCodeOwnerReviews       bool
+								RequiresCommitSignatures       bool
+								RequiresConversationResolution bool
+								RequiresLinearHistory          bool
+								RequiresStatusChecks           bool
+							} `graphql:"branchProtectionRule"`
+						} `graphql:"defaultBranchRef"`
+						VulnerabilityAlerts struct {
+							TotalCount int
+						} `graphql:"vulnerabilityAlerts"`
 					}
 				} `graphql:"edges"`
 			} `graphql:"repositories(first: $first)"`
