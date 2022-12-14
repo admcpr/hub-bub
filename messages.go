@@ -1,7 +1,8 @@
 package main
 
 type RepositoryListMsg struct {
-	Repositories []Repository
+	Repositories      []Repository
+	OrganizationQuery OrganizationQuery
 }
 
 type AuthenticationMsg struct {

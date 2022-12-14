@@ -1,5 +1,9 @@
 package main
 
+import (
+	"time"
+)
+
 type OrganizationQuery struct {
 	Organization struct {
 		Id           string
@@ -8,9 +12,13 @@ type OrganizationQuery struct {
 				Node struct {
 					Name                  string
 					Id                    string
+					AutoMergeAllowed      bool
+					DeleteBranchOnMerge   bool
+					RebaseMergeAllowed    bool
 					HasDiscussionsEnabled bool
 					HasIssuesEnabled      bool
 					HasWikiEnabled        bool
+					HasProjectsEnabled    bool
 					IsArchived            bool
 					IsDisabled            bool
 					IsFork                bool
@@ -20,14 +28,12 @@ type OrganizationQuery struct {
 					IsTemplate            bool
 					StargazerCount        int
 					SquashMergeAllowed    bool
-					defaultBranchRef      struct {
+					UpdatedAt             time.Time
+					DefaultBranchRef      struct {
 						Name                 string
-						branchProtectionRule struct {
+						BranchProtectionRule struct {
 							AllowsDeletions                bool
 							AllowsForcePushes              bool
-							AllowsRebaseMerge              bool
-							AllowsSquashMerge              bool
-							AllowsUnrestrictedPushes       bool
 							DismissesStaleReviews          bool
 							IsAdminEnforced                bool
 							RequiredApprovingReviewCount   int

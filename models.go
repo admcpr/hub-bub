@@ -102,7 +102,8 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case RepositoryListMsg:
-		m.RepositoryTable = buildRepositoryTable(msg.Repositories)
+		// m.RepositoryTable = buildRepositoryTable(msg.Repositories)
+		m.RepositoryTable = buildRepositoryTable2(msg.OrganizationQuery)
 		return m, nil
 
 	case tea.KeyMsg:
@@ -128,36 +129,6 @@ func (m OrganisationModel) View() string {
 	return baseStyle.Render(m.RepositoryTable.View()) + "\n"
 }
 
-// func (m OrganisationModel) GetRepositories() tea.Msg {
-// 	client, err := gh.GQLClient(nil)
-// 	if err != nil {
-// 		return AuthenticationErrorMsg{Err: err}
-// 	}
-// 	response := []Repository{}
-
-// 	var query struct {
-// 		Repository struct {
-// 			Refs struct {
-// 				Nodes []struct {
-// 					Name string
-// 				}
-// 			} `graphql:"refs(refPrefix: $refPrefix, last: $last)"`
-// 		} `graphql:"repository(owner: $owner, name: $name)"`
-// 	}
-// 	variables := map[string]interface{}{
-// 		"refPrefix": graphql.String("refs/tags/"),
-// 		"last":      graphql.Int(30),
-// 		"owner":     graphql.String("cli"),
-// 		"name":      graphql.String("cli"),
-// 	}
-// 	err = client.Query("RepositoryTags", &query, variables)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-
-// 	return RepositoryListMsg{Repositories: response}
-// }
-
 func (m OrganisationModel) GetRepositories() tea.Msg {
 	client, err := gh.GQLClient(nil)
 	if err != nil {
@@ -165,61 +136,18 @@ func (m OrganisationModel) GetRepositories() tea.Msg {
 	}
 	response := []Repository{}
 
-	var query struct {
-		Organization struct {
-			Id           string
-			Repositories struct {
-				Edges []struct {
-					Node struct {
-						Name                  string
-						Id                    string
-						HasDiscussionsEnabled bool
-						HasIssuesEnabled      bool
-						HasWikiEnabled        bool
-						IsArchived            bool
-						IsDisabled            bool
-						IsFork                bool
-						IsLocked              bool
-						IsMirror              bool
-						IsPrivate             bool
-						IsTemplate            bool
-						StargazerCount        int
-						SquashMergeAllowed    bool
-						DefaultBranchRef      struct {
-							Name                 string
-							BranchProtectionRule struct {
-								AllowsDeletions                bool
-								AllowsForcePushes              bool
-								DismissesStaleReviews          bool
-								IsAdminEnforced                bool
-								RequiredApprovingReviewCount   int
-								RequiresApprovingReviews       bool
-								RequiresCodeOwnerReviews       bool
-								RequiresCommitSignatures       bool
-								RequiresConversationResolution bool
-								RequiresLinearHistory          bool
-								RequiresStatusChecks           bool
-							} `graphql:"branchProtectionRule"`
-						} `graphql:"defaultBranchRef"`
-						VulnerabilityAlerts struct {
-							TotalCount int
-						} `graphql:"vulnerabilityAlerts"`
-					}
-				} `graphql:"edges"`
-			} `graphql:"repositories(first: $first)"`
-		} `graphql:"organization(login: $login)"`
-	}
+	var organizationQuery = OrganizationQuery{}
 
 	variables := map[string]interface{}{
 		"login": graphql.String("bbfc-horizon"),
 		"first": graphql.Int(30),
 	}
-	err = client.Query("Repositories", &query, variables)
+	err = client.Query("Repositories", &organizationQuery, variables)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return RepositoryListMsg{Repositories: response}
+	return RepositoryListMsg{Repositories: response, OrganizationQuery: organizationQuery}
 }
 
 // Full query

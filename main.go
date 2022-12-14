@@ -96,6 +96,52 @@ func buildRepositoryTable(repositories []Repository) table.Model {
 	return t
 }
 
+func buildRepositoryTable2(organizationQuery OrganizationQuery) table.Model {
+	columns := []table.Column{
+		{Title: "Name", Width: 20},
+		{Title: "Issues", Width: 10},
+		{Title: "Wiki", Width: 10},
+		{Title: "Projects", Width: 10},
+		{Title: "Rebase Merge", Width: 10},
+		{Title: "Auto Merge", Width: 10},
+		{Title: "Delete Branch On Merge", Width: 10},
+	}
+
+	rows := make([]table.Row, len(organizationQuery.Organization.Repositories.Edges))
+	for i, repo := range organizationQuery.Organization.Repositories.Edges {
+		rows[i] = table.Row{
+			repo.Node.Name,
+			YesNo(repo.Node.HasIssuesEnabled),
+			YesNo(repo.Node.HasWikiEnabled),
+			YesNo(repo.Node.HasProjectsEnabled),
+			YesNo(repo.Node.RebaseMergeAllowed),
+			YesNo(repo.Node.AutoMergeAllowed),
+			YesNo(repo.Node.DeleteBranchOnMerge),
+		}
+	}
+
+	t := table.New(
+		table.WithColumns(columns),
+		table.WithRows(rows),
+		table.WithFocused(true),
+		table.WithHeight(len(organizationQuery.Organization.Repositories.Edges)),
+	)
+
+	s := table.DefaultStyles()
+	s.Header = s.Header.
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("240")).
+		BorderBottom(true).
+		Bold(false)
+	s.Selected = s.Selected.
+		Foreground(lipgloss.Color("229")).
+		Background(lipgloss.Color("57")).
+		Bold(false)
+	t.SetStyles(s)
+
+	return t
+}
+
 func buildOrganisationTable(organisations []Organisation) table.Model {
 	columns := []table.Column{
 		{Title: "Login", Width: 20},
