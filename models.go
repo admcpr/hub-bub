@@ -103,7 +103,7 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case RepositoryListMsg:
 		// m.RepositoryTable = buildRepositoryTable(msg.Repositories)
-		m.RepositoryTable = buildRepositoryTable2(msg.OrganizationQuery)
+		m.RepositoryTable = buildRepositoryTable(msg.OrganizationQuery)
 		return m, nil
 
 	case tea.KeyMsg:
@@ -134,60 +134,17 @@ func (m OrganisationModel) GetRepositories() tea.Msg {
 	if err != nil {
 		return AuthenticationErrorMsg{Err: err}
 	}
-	response := []Repository{}
 
 	var organizationQuery = OrganizationQuery{}
 
 	variables := map[string]interface{}{
-		"login": graphql.String("bbfc-horizon"),
+		"login": graphql.String(m.Title),
 		"first": graphql.Int(30),
 	}
-	err = client.Query("Repositories", &organizationQuery, variables)
+	err = client.Query("OrganizationRepositories", &organizationQuery, variables)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return RepositoryListMsg{Repositories: response, OrganizationQuery: organizationQuery}
+	return RepositoryListMsg{OrganizationQuery: organizationQuery}
 }
-
-// Full query
-// "{
-// 	organization(login: "bbfc-horizon") {
-// 		repositories(first: 10) {
-// 		edges {
-// 			node {
-// 			id
-// 			name
-// 			defaultBranchRef {
-// 				name
-// 				branchProtectionRule {
-// 				id
-// 				allowsDeletions
-// 				isAdminEnforced
-// 				lockBranch
-// 				requiredApprovingReviewCount
-// 				requiredStatusCheckContexts
-// 				requiresApprovingReviews
-// 				restrictsPushes
-// 				requiresStatusChecks
-// 				}
-// 			}
-// 			hasDiscussionsEnabled
-// 			hasIssuesEnabled
-// 			hasProjectsEnabled
-// 			hasWikiEnabled
-// 			isArchived
-// 			isFork
-// 			visibility
-// 			isSecurityPolicyEnabled
-// 			isPrivate
-// 			vulnerabilityAlerts {
-// 				totalCount
-// 			}
-// 			stargazerCount
-// 			squashMergeAllowed
-// 			}
-// 		}
-// 		}
-// 	}
-// }"

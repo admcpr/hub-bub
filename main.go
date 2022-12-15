@@ -50,7 +50,7 @@ func YesNo(b bool) string {
 	return "No"
 }
 
-func buildRepositoryTable(repositories []Repository) table.Model {
+func buildRepositoryTable(organizationQuery OrganizationQuery) table.Model {
 	columns := []table.Column{
 		{Title: "Name", Width: 20},
 		{Title: "Issues", Width: 10},
@@ -61,54 +61,10 @@ func buildRepositoryTable(repositories []Repository) table.Model {
 		{Title: "Delete Branch On Merge", Width: 10},
 	}
 
-	rows := make([]table.Row, len(repositories))
-	for i, repo := range repositories {
-		rows[i] = table.Row{
-			repo.Name,
-			YesNo(repo.HasIssues),
-			YesNo(repo.HasWiki),
-			YesNo(repo.HasProjects),
-			YesNo(repo.AllowRebaseMerge),
-			YesNo(repo.AllowAutoMerge),
-			YesNo(repo.DeleteBranchOnMerge),
-		}
-	}
+	edges := organizationQuery.Organization.Repositories.Edges
 
-	t := table.New(
-		table.WithColumns(columns),
-		table.WithRows(rows),
-		table.WithFocused(true),
-		table.WithHeight(len(repositories)),
-	)
-
-	s := table.DefaultStyles()
-	s.Header = s.Header.
-		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("240")).
-		BorderBottom(true).
-		Bold(false)
-	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
-		Bold(false)
-	t.SetStyles(s)
-
-	return t
-}
-
-func buildRepositoryTable2(organizationQuery OrganizationQuery) table.Model {
-	columns := []table.Column{
-		{Title: "Name", Width: 20},
-		{Title: "Issues", Width: 10},
-		{Title: "Wiki", Width: 10},
-		{Title: "Projects", Width: 10},
-		{Title: "Rebase Merge", Width: 10},
-		{Title: "Auto Merge", Width: 10},
-		{Title: "Delete Branch On Merge", Width: 10},
-	}
-
-	rows := make([]table.Row, len(organizationQuery.Organization.Repositories.Edges))
-	for i, repo := range organizationQuery.Organization.Repositories.Edges {
+	rows := make([]table.Row, len(edges))
+	for i, repo := range edges {
 		rows[i] = table.Row{
 			repo.Node.Name,
 			YesNo(repo.Node.HasIssuesEnabled),
@@ -124,7 +80,7 @@ func buildRepositoryTable2(organizationQuery OrganizationQuery) table.Model {
 		table.WithColumns(columns),
 		table.WithRows(rows),
 		table.WithFocused(true),
-		table.WithHeight(len(organizationQuery.Organization.Repositories.Edges)),
+		table.WithHeight(len(edges)),
 	)
 
 	s := table.DefaultStyles()
