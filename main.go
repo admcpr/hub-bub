@@ -50,7 +50,7 @@ func YesNo(b bool) string {
 	return "No"
 }
 
-func buildRepositoryTable(repositories []Repository) table.Model {
+func buildRepositoryTable(organizationQuery OrganizationQuery) table.Model {
 	columns := []table.Column{
 		{Title: "Name", Width: 20},
 		{Title: "Issues", Width: 10},
@@ -61,16 +61,18 @@ func buildRepositoryTable(repositories []Repository) table.Model {
 		{Title: "Delete Branch On Merge", Width: 10},
 	}
 
-	rows := make([]table.Row, len(repositories))
-	for i, repo := range repositories {
+	edges := organizationQuery.Organization.Repositories.Edges
+
+	rows := make([]table.Row, len(edges))
+	for i, repo := range edges {
 		rows[i] = table.Row{
-			repo.Name,
-			YesNo(repo.HasIssues),
-			YesNo(repo.HasWiki),
-			YesNo(repo.HasProjects),
-			YesNo(repo.AllowRebaseMerge),
-			YesNo(repo.AllowAutoMerge),
-			YesNo(repo.DeleteBranchOnMerge),
+			repo.Node.Name,
+			YesNo(repo.Node.HasIssuesEnabled),
+			YesNo(repo.Node.HasWikiEnabled),
+			YesNo(repo.Node.HasProjectsEnabled),
+			YesNo(repo.Node.RebaseMergeAllowed),
+			YesNo(repo.Node.AutoMergeAllowed),
+			YesNo(repo.Node.DeleteBranchOnMerge),
 		}
 	}
 
@@ -78,7 +80,7 @@ func buildRepositoryTable(repositories []Repository) table.Model {
 		table.WithColumns(columns),
 		table.WithRows(rows),
 		table.WithFocused(true),
-		table.WithHeight(len(repositories)),
+		table.WithHeight(len(edges)),
 	)
 
 	s := table.DefaultStyles()

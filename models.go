@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/cli/go-gh"
+	graphql "github.com/cli/shurcooL-graphql"
 )
 
 /* Model management */
@@ -100,7 +102,8 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case RepositoryListMsg:
-		m.RepositoryTable = buildRepositoryTable(msg.Repositories)
+		// m.RepositoryTable = buildRepositoryTable(msg.Repositories)
+		m.RepositoryTable = buildRepositoryTable(msg.OrganizationQuery)
 		return m, nil
 
 	case tea.KeyMsg:
@@ -127,18 +130,21 @@ func (m OrganisationModel) View() string {
 }
 
 func (m OrganisationModel) GetRepositories() tea.Msg {
-	client, err := gh.RESTClient(nil)
+	client, err := gh.GQLClient(nil)
 	if err != nil {
 		return AuthenticationErrorMsg{Err: err}
 	}
-	response := []Repository{}
 
-	err = client.Get(fmt.Sprintf("orgs/%s/repos", m.Title), &response)
+	var organizationQuery = OrganizationQuery{}
 
+	variables := map[string]interface{}{
+		"login": graphql.String(m.Title),
+		"first": graphql.Int(30),
+	}
+	err = client.Query("OrganizationRepositories", &organizationQuery, variables)
 	if err != nil {
-		fmt.Println(err)
-		return ErrMsg{Err: err}
+		log.Fatal(err)
 	}
 
-	return RepositoryListMsg{Repositories: response}
+	return RepositoryListMsg{OrganizationQuery: organizationQuery}
 }
