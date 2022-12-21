@@ -2,6 +2,8 @@ package main
 
 import (
 	"testing"
+
+	models "github.com/admcpr/hub-bub/models"
 )
 
 func TestYesNo(t *testing.T) {
@@ -19,7 +21,7 @@ func TestYesNo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := YesNo(tt.args.b); got != tt.want {
+			if got := models.YesNo(tt.args.b); got != tt.want {
 				t.Errorf("YesNo() = %v, want %v", got, tt.want)
 			}
 		})
