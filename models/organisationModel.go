@@ -5,7 +5,6 @@ import (
 
 	"github.com/admcpr/hub-bub/messages"
 	"github.com/admcpr/hub-bub/queries"
-	"github.com/admcpr/hub-bub/structs"
 	"github.com/admcpr/hub-bub/utils"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
@@ -76,39 +75,6 @@ func (m OrganisationModel) GetRepositories() tea.Msg {
 	}
 
 	return messages.RepositoryListMsg{OrganizationQuery: organizationQuery}
-}
-
-func buildOrganisationTable(organisations []structs.Organisation) table.Model {
-	columns := []table.Column{
-		{Title: "Login", Width: 20},
-		{Title: "Url", Width: 80},
-	}
-
-	rows := make([]table.Row, len(organisations))
-	for i, org := range organisations {
-		rows[i] = table.Row{org.Login, org.Url}
-	}
-
-	t := table.New(
-		table.WithColumns(columns),
-		table.WithRows(rows),
-		table.WithFocused(true),
-		table.WithHeight(len(organisations)),
-	)
-
-	s := table.DefaultStyles()
-	s.Header = s.Header.
-		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("240")).
-		BorderBottom(true).
-		Bold(false)
-	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
-		Bold(false)
-	t.SetStyles(s)
-
-	return t
 }
 
 func buildRepositoryTable(organizationQuery queries.OrganizationQuery) table.Model {
