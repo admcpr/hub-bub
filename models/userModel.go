@@ -26,8 +26,8 @@ func (m *UserModel) initList(width, height int) {
 	m.list = list.New(
 		[]list.Item{},
 		list.NewDefaultDelegate(),
-		width,
-		height,
+		100,
+		100,
 	)
 }
 
@@ -130,6 +130,8 @@ func buildListModel(organisations []structs.Organisation) list.Model {
 
 	list := list.New(items, list.NewDefaultDelegate(), 0, 0)
 	list.Title = "Organisations"
+	list.SetHeight(3)
+	list.SetWidth(100)
 
 	return list
 }
