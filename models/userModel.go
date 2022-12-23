@@ -8,26 +8,26 @@ import (
 	"github.com/cli/go-gh"
 
 	"github.com/charmbracelet/bubbles/list"
-	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
 type UserModel struct {
-	Authenticated     bool
-	User              structs.User
-	SelectedOrgUrl    string
-	OrganisationTable table.Model
-	list              list.Model
-	loaded            bool
+	Authenticated  bool
+	User           structs.User
+	SelectedOrgUrl string
+	list           list.Model
+	loaded         bool
+	width          int
+	height         int
 }
 
-func (m *UserModel) initList(width, height int) {
+func (m *UserModel) initList() {
 	m.list = list.New(
 		[]list.Item{},
 		list.NewDefaultDelegate(),
-		100,
-		100,
+		m.width,
+		m.height,
 	)
 }
 
@@ -51,12 +51,15 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			BorderForeground(lipgloss.Color("62"))
 		const divisor = 4
 
+		m.height = msg.Height
+		m.width = msg.Width
+
 		if !m.loaded {
 			columnStyle.Width(msg.Width / divisor)
 			focusedStyle.Width(msg.Width / divisor)
 			columnStyle.Height(msg.Height - divisor)
 			focusedStyle.Height(msg.Height - divisor)
-			m.initList(msg.Width, msg.Height)
+			m.initList()
 			m.loaded = true
 		}
 
@@ -71,7 +74,7 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case messages.OrgListMsg:
 		// m.OrganisationTable = buildOrganisationTable(msg.Organisations)
-		m.list = buildListModel(msg.Organisations)
+		m.list = buildListModel(msg.Organisations, m.width, m.height)
 		return m, nil
 
 	case tea.KeyMsg:
@@ -80,9 +83,10 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case "enter", " ":
 			MainModel[UserModelName] = m
+			item := m.list.SelectedItem()
 			orgModel := &OrganisationModel{
-				Title: m.OrganisationTable.SelectedRow()[0],
-				Url:   m.OrganisationTable.SelectedRow()[1],
+				Title: item.(structs.ListItem).Title(),
+				Url:   item.(structs.ListItem).Description(),
 			}
 
 			MainModel[OrganisationModelName] = orgModel
@@ -114,24 +118,16 @@ func (m UserModel) View() string {
 	return s
 }
 
-type item struct {
-	title, desc string
-}
-
-func (i item) Title() string       { return i.title }
-func (i item) Description() string { return i.desc }
-func (i item) FilterValue() string { return i.title }
-
-func buildListModel(organisations []structs.Organisation) list.Model {
+func buildListModel(organisations []structs.Organisation, width, height int) list.Model {
 	items := make([]list.Item, len(organisations))
 	for i, org := range organisations {
-		items[i] = item{title: org.Login, desc: org.Url}
+		items[i] = structs.NewListItem(org.Login, org.Url)
 	}
 
 	list := list.New(items, list.NewDefaultDelegate(), 0, 0)
 	list.Title = "Organisations"
-	list.SetHeight(3)
-	list.SetWidth(100)
+	list.SetHeight(height)
+	list.SetWidth(width)
 
 	return list
 }
