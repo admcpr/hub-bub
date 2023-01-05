@@ -73,7 +73,6 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case messages.OrgListMsg:
-		// m.OrganisationTable = buildOrganisationTable(msg.Organisations)
 		m.list = buildListModel(msg.Organisations, m.width, m.height)
 		return m, nil
 
@@ -95,27 +94,19 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	// m.OrganisationTable, cmd = m.OrganisationTable.Update(msg)
 	m.list, cmd = m.list.Update(msg)
 
 	return m, cmd
 }
 
 func (m UserModel) View() string {
-	s := fmt.Sprintln("Press q to quit.")
-
 	if !m.Authenticated {
-		return fmt.Sprintln("You are not authenticated try running `gh auth login`")
+		return fmt.Sprintln("You are not authenticated try running `gh auth login`. Press q to quit.")
 	}
-
-	s += fmt.Sprintf("Hello %s, press Enter to select an organisation.\n", m.User.Name)
-	// s += utils.BaseStyle.Render(m.OrganisationTable.View()) + "\n"
 
 	var docStyle = lipgloss.NewStyle().Margin(1, 2)
 
-	s += docStyle.Render(m.list.View())
-
-	return s
+	return docStyle.Render(m.list.View())
 }
 
 func buildListModel(organisations []structs.Organisation, width, height int) list.Model {
@@ -133,7 +124,6 @@ func buildListModel(organisations []structs.Organisation, width, height int) lis
 }
 
 func checkLoginStatus() tea.Msg {
-	// Use an API helper to grab repository tags
 	client, err := gh.RESTClient(nil)
 	if err != nil {
 		return messages.AuthenticationErrorMsg{Err: err}

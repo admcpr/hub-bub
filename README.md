@@ -9,6 +9,5 @@ A cli tool for investigating github repository configuration.
 Built using [bubbletea](https://github.com/charmbracelet/bubbletea).
 
 ## Dependencies 
-1. Install [Go](https://golang.org/doc/install)
 1. Install the [GitHub CLI](https://cli.github.com/)
 1. Login to the GitHub CLI with `gh auth login`
