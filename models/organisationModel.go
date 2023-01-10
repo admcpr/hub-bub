@@ -5,19 +5,32 @@ import (
 
 	"github.com/admcpr/hub-bub/messages"
 	"github.com/admcpr/hub-bub/queries"
+	"github.com/admcpr/hub-bub/structs"
 	"github.com/admcpr/hub-bub/utils"
-	"github.com/charmbracelet/bubbles/table"
+	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/cli/go-gh"
 	graphql "github.com/cli/shurcooL-graphql"
 )
 
-/* Repository model */
 type OrganisationModel struct {
-	Title           string
-	Url             string
-	RepositoryTable table.Model
+	Title        string
+	Url          string
+	SelectedRepo string
+	repoList     list.Model
+	loaded       bool
+	width        int
+	height       int
+}
+
+func (m *OrganisationModel) initList() {
+	m.repoList = list.New(
+		[]list.Item{},
+		list.NewDefaultDelegate(),
+		m.width,
+		m.height,
+	)
 }
 
 func (m OrganisationModel) Init() tea.Cmd {
@@ -29,9 +42,30 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 
+	case tea.WindowSizeMsg:
+		var columnStyle = lipgloss.NewStyle().
+			Padding(1, 2).
+			Border(lipgloss.HiddenBorder())
+		var focusedStyle = lipgloss.NewStyle().
+			Padding(1, 2).
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("62"))
+		const divisor = 2
+
+		m.height = msg.Height
+		m.width = msg.Width
+
+		if !m.loaded {
+			columnStyle.Width(msg.Width / divisor)
+			focusedStyle.Width(msg.Width / divisor)
+			columnStyle.Height(msg.Height - divisor)
+			focusedStyle.Height(msg.Height - divisor)
+			m.initList()
+			m.loaded = true
+		}
+
 	case messages.RepositoryListMsg:
-		// m.RepositoryTable = buildRepositoryTable(msg.Repositories)
-		m.RepositoryTable = buildRepositoryTable(msg.OrganizationQuery)
+		m.repoList = buildRepoListModel(msg.OrganizationQuery, m.width, m.height)
 		return m, nil
 
 	case tea.KeyMsg:
@@ -40,21 +74,26 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case "enter", " ":
 			return m, tea.Batch(
-				tea.Printf("Let's go to %s!", m.RepositoryTable.SelectedRow()[1]),
+				tea.Printf("Let's go to %s!"),
 			)
 		case "esc":
 			return MainModel[UserModelName], nil
 		}
 	}
 
-	m.RepositoryTable, cmd = m.RepositoryTable.Update(msg)
+	// m.RepositoryTable, cmd = m.RepositoryTable.Update(msg)
+	m.repoList, cmd = m.repoList.Update(msg)
 
 	return m, cmd
 }
 
 // View implements tea.Model
 func (m OrganisationModel) View() string {
-	return utils.BaseStyle.Render(m.RepositoryTable.View()) + "\n"
+	var repoList = utils.BaseStyle.Render(m.repoList.View())
+
+	var views = []string{repoList}
+
+	return lipgloss.JoinHorizontal(lipgloss.Top, views...)
 }
 
 func (m OrganisationModel) GetRepositories() tea.Msg {
@@ -77,50 +116,17 @@ func (m OrganisationModel) GetRepositories() tea.Msg {
 	return messages.RepositoryListMsg{OrganizationQuery: organizationQuery}
 }
 
-func buildRepositoryTable(organizationQuery queries.OrganizationQuery) table.Model {
-	columns := []table.Column{
-		{Title: "Name", Width: 20},
-		{Title: "Issues", Width: 10},
-		{Title: "Wiki", Width: 10},
-		{Title: "Projects", Width: 10},
-		{Title: "Rebase Merge", Width: 10},
-		{Title: "Auto Merge", Width: 10},
-		{Title: "Delete Branch On Merge", Width: 10},
-	}
-
+func buildRepoListModel(organizationQuery queries.OrganizationQuery, width, height int) list.Model {
 	edges := organizationQuery.Organization.Repositories.Edges
-
-	rows := make([]table.Row, len(edges))
+	items := make([]list.Item, len(edges))
 	for i, repo := range edges {
-		rows[i] = table.Row{
-			repo.Node.Name,
-			utils.YesNo(repo.Node.HasIssuesEnabled),
-			utils.YesNo(repo.Node.HasWikiEnabled),
-			utils.YesNo(repo.Node.HasProjectsEnabled),
-			utils.YesNo(repo.Node.RebaseMergeAllowed),
-			utils.YesNo(repo.Node.AutoMergeAllowed),
-			utils.YesNo(repo.Node.DeleteBranchOnMerge),
-		}
+		items[i] = structs.NewListItem("repo.Node.Name"+repo.Node.Name, "repo.Node.Url")
 	}
 
-	t := table.New(
-		table.WithColumns(columns),
-		table.WithRows(rows),
-		table.WithFocused(true),
-		table.WithHeight(len(edges)),
-	)
+	list := list.New(items, list.NewDefaultDelegate(), 0, 0)
+	list.Title = "Repositories"
+	list.SetHeight(10)
+	list.SetWidth(width)
 
-	s := table.DefaultStyles()
-	s.Header = s.Header.
-		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("240")).
-		BorderBottom(true).
-		Bold(false)
-	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
-		Bold(false)
-	t.SetStyles(s)
-
-	return t
+	return list
 }

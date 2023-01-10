@@ -73,7 +73,7 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case messages.OrgListMsg:
-		m.list = buildListModel(msg.Organisations, m.width, m.height)
+		m.list = buildOrgListModel(msg.Organisations, m.width, m.height)
 		return m, nil
 
 	case tea.KeyMsg:
@@ -109,7 +109,7 @@ func (m UserModel) View() string {
 	return docStyle.Render(m.list.View())
 }
 
-func buildListModel(organisations []structs.Organisation, width, height int) list.Model {
+func buildOrgListModel(organisations []structs.Organisation, width, height int) list.Model {
 	items := make([]list.Item, len(organisations))
 	for i, org := range organisations {
 		items[i] = structs.NewListItem(org.Login, org.Url)

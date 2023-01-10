@@ -11,6 +11,7 @@ type OrganizationQuery struct {
 			Edges []struct {
 				Node struct {
 					Name                  string
+					Url                   string
 					Id                    string
 					AutoMergeAllowed      bool
 					DeleteBranchOnMerge   bool
@@ -48,7 +49,7 @@ type OrganizationQuery struct {
 					VulnerabilityAlerts struct {
 						TotalCount int
 					} `graphql:"vulnerabilityAlerts"`
-				}
+				} `graphql:"node"`
 			} `graphql:"edges"`
 		} `graphql:"repositories(first: $first)"`
 	} `graphql:"organization(login: $login)"`
