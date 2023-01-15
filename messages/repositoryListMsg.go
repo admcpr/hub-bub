@@ -1,7 +1,9 @@
 package messages
 
-import "github.com/admcpr/hub-bub/queries"
+import (
+	"github.com/admcpr/hub-bub/structs"
+)
 
 type RepositoryListMsg struct {
-	OrganizationQuery queries.OrganizationQuery
+	OrganizationQuery structs.OrganizationQuery
 }

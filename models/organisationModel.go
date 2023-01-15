@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"github.com/admcpr/hub-bub/messages"
-	"github.com/admcpr/hub-bub/queries"
 	"github.com/admcpr/hub-bub/structs"
 	"github.com/admcpr/hub-bub/utils"
 	"github.com/charmbracelet/bubbles/list"
@@ -18,6 +17,7 @@ type OrganisationModel struct {
 	Title        string
 	Url          string
 	SelectedRepo string
+	Repositories []structs.Repository
 	repoList     list.Model
 	loaded       bool
 	width        int
@@ -66,6 +66,7 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case messages.RepositoryListMsg:
 		m.repoList = buildRepoListModel(msg.OrganizationQuery, m.width, m.height)
+		m.Repositories = msg.OrganizationQuery.GetRepositories()
 		return m, nil
 
 	case tea.KeyMsg:
@@ -87,6 +88,24 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
+func tabBorderWithBottom(left, middle, right string) lipgloss.Border {
+	border := lipgloss.RoundedBorder()
+	border.BottomLeft = left
+	border.Bottom = middle
+	border.BottomRight = right
+	return border
+}
+
+var (
+	inactiveTabBorder = tabBorderWithBottom("┴", "─", "┴")
+	activeTabBorder   = tabBorderWithBottom("┘", " ", "└")
+	docStyle          = lipgloss.NewStyle().Padding(1, 2, 1, 2)
+	highlightColor    = lipgloss.AdaptiveColor{Light: "#874BFD", Dark: "#7D56F4"}
+	inactiveTabStyle  = lipgloss.NewStyle().Border(inactiveTabBorder, true).BorderForeground(highlightColor).Padding(0, 1)
+	activeTabStyle    = inactiveTabStyle.Copy().Border(activeTabBorder, true)
+	windowStyle       = lipgloss.NewStyle().BorderForeground(highlightColor).Padding(2, 0).Align(lipgloss.Center).Border(lipgloss.NormalBorder()).UnsetBorderTop()
+)
+
 // View implements tea.Model
 func (m OrganisationModel) View() string {
 	var repoList = utils.BaseStyle.Render(m.repoList.View())
@@ -102,7 +121,7 @@ func (m OrganisationModel) GetRepositories() tea.Msg {
 		return messages.AuthenticationErrorMsg{Err: err}
 	}
 
-	var organizationQuery = queries.OrganizationQuery{}
+	var organizationQuery = structs.OrganizationQuery{}
 
 	variables := map[string]interface{}{
 		"login": graphql.String(m.Title),
@@ -116,7 +135,7 @@ func (m OrganisationModel) GetRepositories() tea.Msg {
 	return messages.RepositoryListMsg{OrganizationQuery: organizationQuery}
 }
 
-func buildRepoListModel(organizationQuery queries.OrganizationQuery, width, height int) list.Model {
+func buildRepoListModel(organizationQuery structs.OrganizationQuery, width, height int) list.Model {
 	edges := organizationQuery.Organization.Repositories.Edges
 	items := make([]list.Item, len(edges))
 	for i, repo := range edges {

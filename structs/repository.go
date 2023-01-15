@@ -3,12 +3,28 @@ package structs
 import "time"
 
 type Repository struct {
-	Name                  string `title:"Name" description:"The name of the repository."`
+	Overview      RepositoryOverview
+	DefaultBranch RepositoryDefaultBranch
+	// AutoMergeAllowed    bool
+	// DeleteBranchOnMerge bool
+	// RebaseMergeAllowed  bool
+	// SquashMergeAllowed bool
+	// UpdatedAt          time.Time
+	// DefaultBranchRef   struct {
+	// 	BranchProtectionRule struct {
+	// 	} `graphql:"branchProtectionRule"`
+	// } `graphql:"defaultBranchRef"`
+	// VulnerabilityAlerts struct {
+	// 	TotalCount int
+	// }
+}
+
+type RepositoryOverview struct {
+	Loaded                bool
+	UpdatedAt             time.Time
+	Name                  string
 	Url                   string
 	Id                    string
-	AutoMergeAllowed      bool
-	DeleteBranchOnMerge   bool
-	RebaseMergeAllowed    bool
 	HasDiscussionsEnabled bool
 	HasIssuesEnabled      bool
 	HasWikiEnabled        bool
@@ -21,25 +37,20 @@ type Repository struct {
 	IsPrivate             bool
 	IsTemplate            bool
 	StargazerCount        int
-	SquashMergeAllowed    bool
-	UpdatedAt             time.Time
-	DefaultBranchRef      struct {
-		Name                 string
-		BranchProtectionRule struct {
-			AllowsDeletions                bool
-			AllowsForcePushes              bool
-			DismissesStaleReviews          bool
-			IsAdminEnforced                bool
-			RequiredApprovingReviewCount   int
-			RequiresApprovingReviews       bool
-			RequiresCodeOwnerReviews       bool
-			RequiresCommitSignatures       bool
-			RequiresConversationResolution bool
-			RequiresLinearHistory          bool
-			RequiresStatusChecks           bool
-		} `graphql:"branchProtectionRule"`
-	} `graphql:"defaultBranchRef"`
-	VulnerabilityAlerts struct {
-		TotalCount int
-	}
+}
+
+type RepositoryDefaultBranch struct {
+	Loaded                         bool
+	Name                           string
+	AllowsDeletions                bool
+	AllowsForcePushes              bool
+	DismissesStaleReviews          bool
+	IsAdminEnforced                bool
+	RequiredApprovingReviewCount   int
+	RequiresApprovingReviews       bool
+	RequiresCodeOwnerReviews       bool
+	RequiresCommitSignatures       bool
+	RequiresConversationResolution bool
+	RequiresLinearHistory          bool
+	RequiresStatusChecks           bool
 }
