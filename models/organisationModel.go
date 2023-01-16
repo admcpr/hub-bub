@@ -16,8 +16,8 @@ import (
 type OrganisationModel struct {
 	Title        string
 	Url          string
-	SelectedRepo string
 	Repositories []structs.Repository
+	SelectedRepo RepositoryModel
 	repoList     list.Model
 	loaded       bool
 	width        int
@@ -82,35 +82,18 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	// m.RepositoryTable, cmd = m.RepositoryTable.Update(msg)
+	m.SelectedRepo.Update(msg)
 	m.repoList, cmd = m.repoList.Update(msg)
 
 	return m, cmd
 }
 
-func tabBorderWithBottom(left, middle, right string) lipgloss.Border {
-	border := lipgloss.RoundedBorder()
-	border.BottomLeft = left
-	border.Bottom = middle
-	border.BottomRight = right
-	return border
-}
-
-var (
-	inactiveTabBorder = tabBorderWithBottom("┴", "─", "┴")
-	activeTabBorder   = tabBorderWithBottom("┘", " ", "└")
-	docStyle          = lipgloss.NewStyle().Padding(1, 2, 1, 2)
-	highlightColor    = lipgloss.AdaptiveColor{Light: "#874BFD", Dark: "#7D56F4"}
-	inactiveTabStyle  = lipgloss.NewStyle().Border(inactiveTabBorder, true).BorderForeground(highlightColor).Padding(0, 1)
-	activeTabStyle    = inactiveTabStyle.Copy().Border(activeTabBorder, true)
-	windowStyle       = lipgloss.NewStyle().BorderForeground(highlightColor).Padding(2, 0).Align(lipgloss.Center).Border(lipgloss.NormalBorder()).UnsetBorderTop()
-)
-
 // View implements tea.Model
 func (m OrganisationModel) View() string {
 	var repoList = utils.BaseStyle.Render(m.repoList.View())
+	var repoTab = utils.BaseStyle.Render(m.SelectedRepo.View())
 
-	var views = []string{repoList}
+	var views = []string{repoList, repoTab}
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, views...)
 }
