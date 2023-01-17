@@ -1,9 +1,11 @@
 package models
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/admcpr/hub-bub/messages"
+	"github.com/admcpr/hub-bub/structs"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -13,6 +15,14 @@ type RepositoryModel struct {
 	Tabs       []string
 	TabContent []string
 	activeTab  int
+}
+
+func NewRepositoryModel(ornq structs.OrganisationRepositoryNodeQuery) RepositoryModel {
+	return RepositoryModel{
+		Tabs:       []string{"Overview", "Issues", "Pull Requests", "Projects", "Wiki", "Settings"},
+		TabContent: []string{fmt.Sprintf("%s Overview Tab", ornq.Name), "Issues Tab", "Pull Requests Tab", "Projects Tab", "Wiki Tab", "Settings Tab"},
+		activeTab:  0,
+	}
 }
 
 func tabBorderWithBottom(left, middle, right string) lipgloss.Border {

@@ -16,7 +16,7 @@ import (
 type OrganisationModel struct {
 	Title        string
 	Url          string
-	Repositories []structs.Repository
+	RepoQuery    structs.OrganizationQuery
 	SelectedRepo RepositoryModel
 	repoList     list.Model
 	loaded       bool
@@ -66,7 +66,8 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case messages.RepositoryListMsg:
 		m.repoList = buildRepoListModel(msg.OrganizationQuery, m.width, m.height)
-		m.Repositories = msg.OrganizationQuery.GetRepositories()
+		m.RepoQuery = msg.OrganizationQuery
+		m.SelectedRepo = NewRepositoryModel(structs.OrganisationRepositoryNodeQuery{})
 		return m, nil
 
 	case tea.KeyMsg:
@@ -74,9 +75,7 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		case "enter", " ":
-			return m, tea.Batch(
-				tea.Printf("Let's go to %s!"),
-			)
+			m.SelectedRepo = NewRepositoryModel(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
 		case "esc":
 			return MainModel[UserModelName], nil
 		}
