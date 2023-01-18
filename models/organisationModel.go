@@ -1,11 +1,11 @@
 package models
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/admcpr/hub-bub/messages"
 	"github.com/admcpr/hub-bub/structs"
-	"github.com/admcpr/hub-bub/utils"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -43,41 +43,31 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case tea.WindowSizeMsg:
-		var columnStyle = lipgloss.NewStyle().
-			Padding(1, 2).
-			Border(lipgloss.HiddenBorder())
-		var focusedStyle = lipgloss.NewStyle().
-			Padding(1, 2).
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("62"))
-		const divisor = 2
-
 		m.height = msg.Height
 		m.width = msg.Width
 
 		if !m.loaded {
-			columnStyle.Width(msg.Width / divisor)
-			focusedStyle.Width(msg.Width / divisor)
-			columnStyle.Height(msg.Height - divisor)
-			focusedStyle.Height(msg.Height - divisor)
 			m.initList()
 			m.loaded = true
 		}
+		return m, nil
 
 	case messages.RepositoryListMsg:
 		m.repoList = buildRepoListModel(msg.OrganizationQuery, m.width, m.height)
 		m.RepoQuery = msg.OrganizationQuery
-		m.SelectedRepo = NewRepositoryModel(structs.OrganisationRepositoryNodeQuery{})
+		m.SelectedRepo = NewRepositoryModel(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
 		return m, nil
 
 	case tea.KeyMsg:
+		switch msg.Type {
+		case tea.KeyDown, tea.KeyUp:
+			m.SelectedRepo = NewRepositoryModel(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
+		case tea.KeyEsc:
+			return MainModel[UserModelName], nil
+		}
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
-		case "enter", " ":
-			m.SelectedRepo = NewRepositoryModel(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
-		case "esc":
-			return MainModel[UserModelName], nil
 		}
 	}
 
@@ -89,8 +79,10 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View implements tea.Model
 func (m OrganisationModel) View() string {
-	var repoList = utils.BaseStyle.Render(m.repoList.View())
-	var repoTab = utils.BaseStyle.Render(m.SelectedRepo.View())
+	var docStyle = lipgloss.NewStyle().Margin(1, 2).Width(m.width / 2).Height(m.height)
+
+	var repoList = docStyle.Render(m.repoList.View())
+	var repoTab = docStyle.Render(m.SelectedRepo.View())
 
 	var views = []string{repoList, repoTab}
 
@@ -121,12 +113,12 @@ func buildRepoListModel(organizationQuery structs.OrganizationQuery, width, heig
 	edges := organizationQuery.Organization.Repositories.Edges
 	items := make([]list.Item, len(edges))
 	for i, repo := range edges {
-		items[i] = structs.NewListItem("repo.Node.Name"+repo.Node.Name, "repo.Node.Url")
+		items[i] = structs.NewListItem(repo.Node.Name, repo.Node.Url)
 	}
 
 	list := list.New(items, list.NewDefaultDelegate(), 0, 0)
-	list.Title = "Repositories"
-	list.SetHeight(10)
+	list.Title = fmt.Sprintf("Repositories h:%d w:%d", height, width)
+	list.SetHeight(height)
 	list.SetWidth(width)
 
 	return list

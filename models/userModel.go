@@ -41,27 +41,14 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case tea.WindowSizeMsg:
-
-		var columnStyle = lipgloss.NewStyle().
-			Padding(1, 2).
-			Border(lipgloss.HiddenBorder())
-		var focusedStyle = lipgloss.NewStyle().
-			Padding(1, 2).
-			Border(lipgloss.RoundedBorder()).
-			BorderForeground(lipgloss.Color("62"))
-		const divisor = 4
-
 		m.height = msg.Height
 		m.width = msg.Width
 
 		if !m.loaded {
-			columnStyle.Width(msg.Width / divisor)
-			focusedStyle.Width(msg.Width / divisor)
-			columnStyle.Height(msg.Height - divisor)
-			focusedStyle.Height(msg.Height - divisor)
 			m.initList()
 			m.loaded = true
 		}
+		return m, nil
 
 	case messages.AuthenticationMsg:
 		m.Authenticated = true
@@ -84,8 +71,10 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			MainModel[UserModelName] = m
 			item := m.list.SelectedItem()
 			orgModel := &OrganisationModel{
-				Title: item.(structs.ListItem).Title(),
-				Url:   item.(structs.ListItem).Description(),
+				Title:  item.(structs.ListItem).Title(),
+				Url:    item.(structs.ListItem).Description(),
+				width:  m.width,
+				height: m.height,
 			}
 
 			MainModel[OrganisationModelName] = orgModel
@@ -115,10 +104,8 @@ func buildOrgListModel(organisations []structs.Organisation, width, height int) 
 		items[i] = structs.NewListItem(org.Login, org.Url)
 	}
 
-	list := list.New(items, list.NewDefaultDelegate(), 0, 0)
+	list := list.New(items, list.NewDefaultDelegate(), width, height)
 	list.Title = "Organisations"
-	list.SetHeight(height)
-	list.SetWidth(width)
 
 	return list
 }

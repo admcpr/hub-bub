@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/admcpr/hub-bub/messages"
 	"github.com/admcpr/hub-bub/structs"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
@@ -82,9 +81,6 @@ func (m RepositoryModel) View() string {
 	return docStyle.Render(doc.String())
 }
 
-// m.Tabs = []string{"Lip Gloss", "Blush", "Eye Shadow", "Mascara", "Foundation"}
-// m.TabContent = []string{"Lip Gloss Tab", "Blush Tab", "Eye Shadow Tab", "Mascara Tab", "Foundation Tab"}
-
 func (m RepositoryModel) Init() tea.Cmd {
 	return textarea.Blink
 }
@@ -102,9 +98,6 @@ func (m RepositoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.activeTab = max(m.activeTab-1, 0)
 			return m, nil
 		}
-	case messages.RepositoryMsg:
-		m.Tabs = []string{"Lip Gloss", "Blush", "Eye Shadow", "Mascara", "Foundation"}
-		m.TabContent = []string{"Lip Gloss Tab", "Blush Tab", "Eye Shadow Tab", "Mascara Tab", "Foundation Tab"}
 	}
 
 	return m, nil
