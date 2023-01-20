@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/admcpr/hub-bub/structs"
@@ -14,13 +13,15 @@ type RepositoryModel struct {
 	Tabs       []string
 	TabContent []string
 	activeTab  int
+	width      int
 }
 
-func NewRepositoryModel(ornq structs.OrganisationRepositoryNodeQuery) RepositoryModel {
+func NewRepositoryModel(ornq structs.OrganisationRepositoryNodeQuery, width int) RepositoryModel {
 	return RepositoryModel{
 		Tabs:       []string{"Overview", "Issues", "Pull Requests", "Projects", "Wiki", "Settings"},
-		TabContent: []string{fmt.Sprintf("%s Overview Tab", ornq.Name), "Issues Tab", "Pull Requests Tab", "Projects Tab", "Wiki Tab", "Settings Tab"},
+		TabContent: []string{buildOverview(ornq), "Issues Tab", "Pull Requests Tab", "Projects Tab", "Wiki Tab", "Settings Tab"},
 		activeTab:  0,
+		width:      width,
 	}
 }
 

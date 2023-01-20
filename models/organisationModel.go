@@ -14,14 +14,15 @@ import (
 )
 
 type OrganisationModel struct {
-	Title        string
-	Url          string
-	RepoQuery    structs.OrganizationQuery
-	SelectedRepo RepositoryModel
-	repoList     list.Model
-	loaded       bool
-	width        int
-	height       int
+	Title         string
+	Url           string
+	RepoQuery     structs.OrganizationQuery
+	SelectedRepo  RepositoryModel
+	repoList      list.Model
+	loaded        bool
+	width         int
+	height        int
+	tabsHaveFocus bool
 }
 
 func (m *OrganisationModel) initList() {
@@ -55,24 +56,35 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case messages.RepositoryListMsg:
 		m.repoList = buildRepoListModel(msg.OrganizationQuery, m.width, m.height)
 		m.RepoQuery = msg.OrganizationQuery
-		m.SelectedRepo = NewRepositoryModel(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
+		m.SelectedRepo = NewRepositoryModel(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node, m.width/2)
 		return m, nil
 
 	case tea.KeyMsg:
-		switch msg.Type {
-		case tea.KeyDown, tea.KeyUp:
-			m.SelectedRepo = NewRepositoryModel(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
-		case tea.KeyEsc:
-			return MainModel[UserModelName], nil
-		}
-		switch msg.String() {
-		case "ctrl+c", "q":
-			return m, tea.Quit
+		if m.tabsHaveFocus {
+			// Pass messages to repository model
+			switch msg.Type {
+			case tea.KeyEsc:
+				m.tabsHaveFocus = false
+				return m, nil
+			}
+			_, cmd = m.SelectedRepo.Update(msg)
+		} else {
+			switch msg.Type {
+			case tea.KeyDown, tea.KeyUp:
+				m.SelectedRepo = NewRepositoryModel(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node, m.width/2)
+			case tea.KeyEnter:
+				m.tabsHaveFocus = true
+				return m, nil
+			case tea.KeyEsc:
+				return MainModel[UserModelName], nil
+			}
+			switch msg.String() {
+			case "ctrl+c", "q":
+				return m, tea.Quit
+			}
+			m.repoList, cmd = m.repoList.Update(msg)
 		}
 	}
-
-	m.SelectedRepo.Update(msg)
-	m.repoList, cmd = m.repoList.Update(msg)
 
 	return m, cmd
 }
