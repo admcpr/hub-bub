@@ -6,6 +6,7 @@ import (
 	"github.com/admcpr/hub-bub/structs"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -18,7 +19,7 @@ type RepositoryModel struct {
 
 func NewRepositoryModel(ornq structs.OrganisationRepositoryNodeQuery, width int) RepositoryModel {
 	return RepositoryModel{
-		Tabs:       []string{"Overview", "Issues", "Pull Requests", "Projects", "Wiki", "Settings"},
+		Tabs:       []string{"Overview", "Features", "PRs & Default Branch", "Security", "Wiki", "Settings"},
 		TabContent: []string{buildOverview(ornq), "Issues Tab", "Pull Requests Tab", "Projects Tab", "Wiki Tab", "Settings Tab"},
 		ActiveTab:  0,
 		width:      width,
@@ -75,10 +76,18 @@ func (m RepositoryModel) View() string {
 		renderedTabs = append(renderedTabs, style.Render(t))
 	}
 
+	renderer, _ := glamour.NewTermRenderer(
+		glamour.WithAutoStyle(),
+		glamour.WithWordWrap(m.width),
+	)
+
+	contentStr, _ := renderer.Render(m.TabContent[m.ActiveTab])
+
 	row := lipgloss.JoinHorizontal(lipgloss.Top, renderedTabs...)
 	doc.WriteString(row)
 	doc.WriteString("\n")
-	doc.WriteString(windowStyle.Width((lipgloss.Width(row) - windowStyle.GetHorizontalFrameSize())).Render(m.TabContent[m.ActiveTab]))
+	// doc.WriteString(windowStyle.Width((lipgloss.Width(row) - windowStyle.GetHorizontalFrameSize())).Render(m.TabContent[m.ActiveTab]))
+	doc.WriteString(contentStr)
 	return docStyle.Render(doc.String())
 }
 

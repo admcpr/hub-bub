@@ -16,27 +16,28 @@ type OrganizationQuery struct {
 }
 
 type OrganisationRepositoryNodeQuery struct {
-	Name                  string
-	Url                   string
-	Id                    string
-	AutoMergeAllowed      bool
-	DeleteBranchOnMerge   bool
-	RebaseMergeAllowed    bool
-	HasDiscussionsEnabled bool
-	HasIssuesEnabled      bool
-	HasWikiEnabled        bool
-	HasProjectsEnabled    bool
-	IsArchived            bool
-	IsDisabled            bool
-	IsFork                bool
-	IsLocked              bool
-	IsMirror              bool
-	IsPrivate             bool
-	IsTemplate            bool
-	StargazerCount        int
-	SquashMergeAllowed    bool
-	UpdatedAt             time.Time
-	DefaultBranchRef      struct {
+	Name                          string
+	Url                           string
+	Id                            string
+	AutoMergeAllowed              bool
+	DeleteBranchOnMerge           bool
+	RebaseMergeAllowed            bool
+	HasDiscussionsEnabled         bool
+	HasIssuesEnabled              bool
+	HasWikiEnabled                bool
+	HasProjectsEnabled            bool
+	HasVulnerabilityAlertsEnabled bool
+	IsArchived                    bool
+	IsDisabled                    bool
+	IsFork                        bool
+	IsLocked                      bool
+	IsMirror                      bool
+	IsPrivate                     bool
+	IsTemplate                    bool
+	StargazerCount                int
+	SquashMergeAllowed            bool
+	UpdatedAt                     time.Time
+	DefaultBranchRef              struct {
 		Name                 string
 		BranchProtectionRule struct {
 			AllowsDeletions                bool
