@@ -11,7 +11,7 @@
             "mode": "auto",
             // "program": "${fileDirname}",
             "program": "main.go",
-            "console": "integratedTerminal"
+            "console": "externalTerminal"
         }
     ]
 }

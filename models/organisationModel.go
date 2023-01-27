@@ -66,6 +66,12 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case tea.KeyEsc:
 				m.tabsHaveFocus = false
 				return m, nil
+			case tea.KeyRight:
+				m.SelectedRepo.ActiveTab = min(m.SelectedRepo.ActiveTab+1, len(m.SelectedRepo.Tabs)-1)
+				return m, nil
+			case tea.KeyLeft:
+				m.SelectedRepo.ActiveTab = max(m.SelectedRepo.ActiveTab-1, 0)
+				return m, nil
 			}
 			_, cmd = m.SelectedRepo.Update(msg)
 		} else {

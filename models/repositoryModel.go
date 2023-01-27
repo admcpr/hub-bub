@@ -6,21 +6,22 @@ import (
 	"github.com/admcpr/hub-bub/structs"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
 )
 
 type RepositoryModel struct {
 	Tabs       []string
 	TabContent []string
-	activeTab  int
+	ActiveTab  int
 	width      int
 }
 
 func NewRepositoryModel(ornq structs.OrganisationRepositoryNodeQuery, width int) RepositoryModel {
 	return RepositoryModel{
-		Tabs:       []string{"Overview", "Issues", "Pull Requests", "Projects", "Wiki", "Settings"},
+		Tabs:       []string{"Overview", "Features", "PRs & Default Branch", "Security", "Wiki", "Settings"},
 		TabContent: []string{buildOverview(ornq), "Issues Tab", "Pull Requests Tab", "Projects Tab", "Wiki Tab", "Settings Tab"},
-		activeTab:  0,
+		ActiveTab:  0,
 		width:      width,
 	}
 }
@@ -55,7 +56,7 @@ func (m RepositoryModel) View() string {
 
 	for i, t := range m.Tabs {
 		var style lipgloss.Style
-		isFirst, isLast, isActive := i == 0, i == len(m.Tabs)-1, i == m.activeTab
+		isFirst, isLast, isActive := i == 0, i == len(m.Tabs)-1, i == m.ActiveTab
 		if isActive {
 			style = activeTabStyle.Copy()
 		} else {
@@ -75,10 +76,18 @@ func (m RepositoryModel) View() string {
 		renderedTabs = append(renderedTabs, style.Render(t))
 	}
 
+	renderer, _ := glamour.NewTermRenderer(
+		glamour.WithAutoStyle(),
+		glamour.WithWordWrap(m.width),
+	)
+
+	contentStr, _ := renderer.Render(m.TabContent[m.ActiveTab])
+
 	row := lipgloss.JoinHorizontal(lipgloss.Top, renderedTabs...)
 	doc.WriteString(row)
 	doc.WriteString("\n")
-	doc.WriteString(windowStyle.Width((lipgloss.Width(row) - windowStyle.GetHorizontalFrameSize())).Render(m.TabContent[m.activeTab]))
+	// doc.WriteString(windowStyle.Width((lipgloss.Width(row) - windowStyle.GetHorizontalFrameSize())).Render(m.TabContent[m.ActiveTab]))
+	doc.WriteString(contentStr)
 	return docStyle.Render(doc.String())
 }
 
@@ -87,19 +96,19 @@ func (m RepositoryModel) Init() tea.Cmd {
 }
 
 func (m RepositoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch keypress := msg.String(); keypress {
-		case "ctrl+c", "q":
-			return m, tea.Quit
-		case "right", "l", "n", "tab":
-			m.activeTab = min(m.activeTab+1, len(m.Tabs)-1)
-			return m, nil
-		case "left", "h", "p", "shift+tab":
-			m.activeTab = max(m.activeTab-1, 0)
-			return m, nil
-		}
-	}
+	// switch msg := msg.(type) {
+	// case tea.KeyMsg:
+	// 	switch keypress := msg.String(); keypress {
+	// 	case "ctrl+c", "q":
+	// 		return m, tea.Quit
+	// 	case "right", "l", "n", "tab":
+	// 		m.activeTab = min(m.activeTab+1, len(m.Tabs)-1)
+	// 		return m, nil
+	// 	case "left", "h", "p", "shift+tab":
+	// 		m.activeTab = max(m.activeTab-1, 0)
+	// 		return m, nil
+	// 	}
+	// }
 
 	return m, nil
 }
