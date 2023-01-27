@@ -50,6 +50,8 @@ type OrganisationRepositoryNodeQuery struct {
 			RequiresConversationResolution bool
 			RequiresLinearHistory          bool
 			RequiresStatusChecks           bool
+			RequireReviewsFromCodeOwners   bool
+			RequiresStrictStatusChecks     bool
 		} `graphql:"branchProtectionRule"`
 	} `graphql:"defaultBranchRef"`
 	VulnerabilityAlerts struct {
