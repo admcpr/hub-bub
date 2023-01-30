@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/admcpr/hub-bub/structs"
+	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
@@ -13,7 +14,9 @@ import (
 type RepositoryModel struct {
 	Tabs       []string
 	TabContent []string
+	TabLists   []structs.RepositorySettingsTab
 	ActiveTab  int
+	ActiveList list.Model
 	width      int
 }
 
@@ -21,8 +24,15 @@ func NewRepositoryModel(ornq structs.OrganisationRepositoryNodeQuery, width int)
 	return RepositoryModel{
 		Tabs:       []string{"Overview", "Features", "PRs & Default Branch", "Security", "Wiki", "Settings"},
 		TabContent: []string{buildOverview(ornq), "Issues Tab", "Pull Requests Tab", "Projects Tab", "Wiki Tab", "Settings Tab"},
+		TabLists:   structs.BuildRepositorySettings(ornq),
 		ActiveTab:  0,
-		width:      width,
+		ActiveList: list.New(
+			[]list.Item{},
+			list.NewDefaultDelegate(),
+			width,
+			100,
+		),
+		width: width,
 	}
 }
 
