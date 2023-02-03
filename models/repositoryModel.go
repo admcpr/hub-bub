@@ -1,13 +1,13 @@
 package models
 
 import (
-	"strings"
+	"fmt"
 
+	"github.com/admcpr/hub-bub/messages"
 	"github.com/admcpr/hub-bub/structs"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -60,7 +60,7 @@ func (m RepositoryModel) View() string {
 		return ""
 	}
 
-	doc := strings.Builder{}
+	// doc := strings.Builder{}
 
 	var renderedTabs []string
 
@@ -86,39 +86,61 @@ func (m RepositoryModel) View() string {
 		renderedTabs = append(renderedTabs, style.Render(t))
 	}
 
-	renderer, _ := glamour.NewTermRenderer(
-		glamour.WithAutoStyle(),
-		glamour.WithWordWrap(m.width),
-	)
+	// renderer, _ := glamour.NewTermRenderer(
+	// 	glamour.WithAutoStyle(),
+	// 	glamour.WithWordWrap(m.width),
+	// )
 
-	contentStr, _ := renderer.Render(m.TabContent[m.ActiveTab])
+	// contentStr, _ := renderer.Render(m.TabContent[m.ActiveTab])
 
-	row := lipgloss.JoinHorizontal(lipgloss.Top, renderedTabs...)
-	doc.WriteString(row)
-	doc.WriteString("\n")
+	//row := lipgloss.JoinHorizontal(lipgloss.Top, renderedTabs...)
+
+	return fmt.Sprintf("ActiveTab:%d", m.ActiveTab)
+
+	// m.ActiveList.View()
+
+	// lipgloss.JoinVertical(lipgloss.Top, docStyle.Render(row), docStyle.Render(m.ActiveList.View()))
+	// doc.WriteString(row)
+	// doc.WriteString("\n")
 	// doc.WriteString(windowStyle.Width((lipgloss.Width(row) - windowStyle.GetHorizontalFrameSize())).Render(m.TabContent[m.ActiveTab]))
-	doc.WriteString(contentStr)
-	return docStyle.Render(doc.String())
+	// doc.WriteString(docStyle.Render(m.ActiveList.View()))
+	// return docStyle.Render(doc.String())
 }
 
 func (m RepositoryModel) Init() tea.Cmd {
 	return textarea.Blink
 }
 
+func buildTabListModel(tabSettings structs.RepositorySettingsTab, width, height int) list.Model {
+	items := make([]list.Item, len(tabSettings.Settings))
+	for i, setting := range tabSettings.Settings {
+		items[i] = structs.NewListItem(setting.Name, setting.Value)
+	}
+
+	list := list.New(items, list.NewDefaultDelegate(), 0, 0)
+	// list.Title = fmt.Sprintf("Settings h:%d w:%d", height, width)
+	list.SetHeight(height)
+	list.SetWidth(width)
+
+	return list
+}
+
 func (m RepositoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	// switch msg := msg.(type) {
-	// case tea.KeyMsg:
-	// 	switch keypress := msg.String(); keypress {
-	// 	case "ctrl+c", "q":
-	// 		return m, tea.Quit
-	// 	case "right", "l", "n", "tab":
-	// 		m.activeTab = min(m.activeTab+1, len(m.Tabs)-1)
-	// 		return m, nil
-	// 	case "left", "h", "p", "shift+tab":
-	// 		m.activeTab = max(m.activeTab-1, 0)
-	// 		return m, nil
-	// 	}
-	// }
+	switch msg.(type) {
+	case messages.RepositorySelectedMsg:
+		m.ActiveList = buildTabListModel(m.TabLists[0], m.width, 100)
+		// case tea.KeyMsg:
+		// 	switch keypress := msg.String(); keypress {
+		// 	case "ctrl+c", "q":
+		// 		return m, tea.Quit
+		// 	case "right", "l", "n", "tab":
+		// 		m.activeTab = min(m.activeTab+1, len(m.Tabs)-1)
+		// 		return m, nil
+		// 	case "left", "h", "p", "shift+tab":
+		// 		m.activeTab = max(m.activeTab-1, 0)
+		// 		return m, nil
+		// 	}
+	}
 
 	return m, nil
 }

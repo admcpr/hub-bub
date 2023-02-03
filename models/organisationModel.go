@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"io"
 	"log"
 
 	"github.com/admcpr/hub-bub/messages"
@@ -14,11 +15,16 @@ import (
 )
 
 type OrganisationModel struct {
-	Title         string
-	Url           string
-	RepoQuery     structs.OrganizationQuery
-	SelectedRepo  RepositoryModel
-	repoList      list.Model
+	Title     string
+	Url       string
+	RepoQuery structs.OrganizationQuery
+
+	repositorySettingsTabs []structs.RepositorySettingsTab
+
+	repoList    list.Model
+	settingList list.Model
+
+	activeTab     int
 	loaded        bool
 	width         int
 	height        int
@@ -56,7 +62,8 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case messages.RepositoryListMsg:
 		m.repoList = buildRepoListModel(msg.OrganizationQuery, m.width, m.height)
 		m.RepoQuery = msg.OrganizationQuery
-		m.SelectedRepo = NewRepositoryModel(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node, m.width/2)
+		m.repositorySettingsTabs = structs.BuildRepositorySettings(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
+		m.settingList = buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
 		return m, nil
 
 	case tea.KeyMsg:
@@ -67,20 +74,19 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.tabsHaveFocus = false
 				return m, nil
 			case tea.KeyRight:
-				m.SelectedRepo.ActiveTab = min(m.SelectedRepo.ActiveTab+1, len(m.SelectedRepo.Tabs)-1)
-				return m, nil
+				m.activeTab = min(m.activeTab+1, len(m.repositorySettingsTabs)-1)
+				m.settingList = buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
 			case tea.KeyLeft:
-				m.SelectedRepo.ActiveTab = max(m.SelectedRepo.ActiveTab-1, 0)
-				return m, nil
+				m.activeTab = max(m.activeTab-1, 0)
+				m.settingList = buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
 			}
-			_, cmd = m.SelectedRepo.Update(msg)
 		} else {
 			switch msg.Type {
 			case tea.KeyDown, tea.KeyUp:
-				m.SelectedRepo = NewRepositoryModel(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node, m.width/2)
+				m.repositorySettingsTabs = structs.BuildRepositorySettings(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
+				m.settingList = buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
 			case tea.KeyEnter:
 				m.tabsHaveFocus = true
-				return m, nil
 			case tea.KeyEsc:
 				return MainModel[UserModelName], nil
 			}
@@ -97,12 +103,10 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View implements tea.Model
 func (m OrganisationModel) View() string {
-	var docStyle = lipgloss.NewStyle().Margin(1, 2).Width(m.width / 2).Height(m.height)
+	var repoList = appStyle.Render(m.repoList.View())
+	var settingList = appStyle.Render(m.settingList.View())
 
-	var repoList = docStyle.Render(m.repoList.View())
-	var repoTab = docStyle.Render(m.SelectedRepo.View())
-
-	var views = []string{repoList, repoTab}
+	var views = []string{repoList, settingList}
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, views...)
 }
@@ -134,10 +138,47 @@ func buildRepoListModel(organizationQuery structs.OrganizationQuery, width, heig
 		items[i] = structs.NewListItem(repo.Node.Name, repo.Node.Url)
 	}
 
-	list := list.New(items, list.NewDefaultDelegate(), 0, 0)
-	list.Title = fmt.Sprintf("Repositories h:%d w:%d", height, width)
-	list.SetHeight(height)
-	list.SetWidth(width)
+	list := list.New(items, list.NewDefaultDelegate(), width, height-titleHeight)
+	list.Title = "Repositories"
+	list.SetShowHelp(false)
+	list.SetShowTitle(true)
 
 	return list
+}
+
+func buildSettingListModel(tabSettings structs.RepositorySettingsTab, width, height int) list.Model {
+	items := make([]list.Item, len(tabSettings.Settings))
+	for i, setting := range tabSettings.Settings {
+		items[i] = structs.NewListItem(setting.Name, setting.Value)
+	}
+
+	list := list.New(items, itemDelegate{}, width, height-titleHeight)
+	list.Title = tabSettings.Name
+	list.SetShowTitle(true)
+	list.SetShowStatusBar(false)
+
+	return list
+}
+
+type itemDelegate struct{}
+
+func (d itemDelegate) Height() int                               { return 1 }
+func (d itemDelegate) Spacing() int                              { return 1 }
+func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd { return nil }
+func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
+	i, ok := listItem.(structs.ListItem)
+	if !ok {
+		return
+	}
+
+	str := fmt.Sprintf("%s > %s", i.Title(), i.Description())
+
+	fn := itemStyle.Render
+	if index == m.Index() {
+		fn = func(s string) string {
+			return selectedItemStyle.Render("> " + s)
+		}
+	}
+
+	fmt.Fprint(w, fn(str))
 }

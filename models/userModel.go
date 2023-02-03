@@ -9,7 +9,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 type UserModel struct {
@@ -93,9 +92,7 @@ func (m UserModel) View() string {
 		return fmt.Sprintln("You are not authenticated try running `gh auth login`. Press q to quit.")
 	}
 
-	var docStyle = lipgloss.NewStyle().Margin(1, 2)
-
-	return docStyle.Render(m.list.View())
+	return appStyle.Render(m.list.View())
 }
 
 func buildOrgListModel(organisations []structs.Organisation, width, height int) list.Model {
@@ -104,8 +101,11 @@ func buildOrgListModel(organisations []structs.Organisation, width, height int) 
 		items[i] = structs.NewListItem(org.Login, org.Url)
 	}
 
-	list := list.New(items, list.NewDefaultDelegate(), width, height)
+	list := list.New(items, list.NewDefaultDelegate(), width, height-titleHeight)
+
 	list.Title = "Organisations"
+	list.Styles.Title = titleStyle
+	list.SetShowTitle(true)
 
 	return list
 }
