@@ -38,6 +38,12 @@ func (m *OrganisationModel) initList() {
 		m.width,
 		m.height,
 	)
+	m.settingList = list.New(
+		[]list.Item{},
+		list.NewDefaultDelegate(),
+		m.width,
+		m.height,
+	)
 }
 
 func (m OrganisationModel) Init() tea.Cmd {
@@ -171,14 +177,39 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 		return
 	}
 
-	str := fmt.Sprintf("%s > %s", i.Title(), i.Description())
+	// str := fmt.Sprintf("%s > %s", i.Title(), i.Description())
 
-	fn := itemStyle.Render
-	if index == m.Index() {
-		fn = func(s string) string {
-			return selectedItemStyle.Render("> " + s)
-		}
-	}
+	statusNugget := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#FFFDF5")).
+		Padding(0, 1)
 
-	fmt.Fprint(w, fn(str))
+	// statusBarStyle := lipgloss.NewStyle().
+	// 	Foreground(lipgloss.AdaptiveColor{Light: "#343433", Dark: "#C1C6B2"}).
+	// 	Background(lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#353533"})
+
+	// statusStyle := lipgloss.NewStyle().
+	// 	Inherit(statusBarStyle).
+	// 	Foreground(lipgloss.Color("#FFFDF5")).
+	// 	Background(lipgloss.Color("#FF5F87")).
+	// 	Padding(0, 1).
+	// 	MarginRight(1)
+
+	encodingStyle := statusNugget.Copy().
+		Background(lipgloss.Color("#A550DF")).
+		Align(lipgloss.Right)
+
+	// str := lipgloss.JoinHorizontal(lipgloss.Left, i.Title(), i.Description())
+
+	title := statusNugget.Render(i.Title())
+	description := encodingStyle.Render(i.Description())
+
+	// fn := itemStyle.Render
+	// if index == m.Index() {
+	// 	fn = func(s string) string {
+	// 		return selectedItemStyle.Render("> " + s)
+	// 	}
+	// }
+	fn := lipgloss.JoinHorizontal
+
+	fmt.Fprint(w, fn(lipgloss.Left, title, description))
 }
