@@ -104,7 +104,7 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // View implements tea.Model
 func (m OrganisationModel) View() string {
 	var repoList = appStyle.Render(m.repoList.View())
-	var settingList = appStyle.Render(m.settingList.View())
+	var settingList = lipgloss.JoinVertical(lipgloss.Left, m.Tabs(), appStyle.Render(m.settingList.View()))
 
 	var views = []string{repoList, settingList}
 
@@ -152,9 +152,9 @@ func buildSettingListModel(tabSettings structs.RepositorySettingsTab, width, hei
 		items[i] = structs.NewListItem(setting.Name, setting.Value)
 	}
 
-	list := list.New(items, itemDelegate{}, width, height-titleHeight)
+	list := list.New(items, itemDelegate{}, width, height-titleHeight-4)
 	list.Title = tabSettings.Name
-	list.SetShowTitle(true)
+	list.SetShowTitle(false)
 	list.SetShowStatusBar(false)
 
 	return list
@@ -181,4 +181,36 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	}
 
 	fmt.Fprint(w, fn(str))
+}
+
+func (m OrganisationModel) Tabs() string {
+	Tabs := []string{"Overview", "Features", "PRs & Default Branch", "Security", "Wiki", "Settings"}
+
+	var renderedTabs []string
+
+	for i, t := range Tabs {
+		var style lipgloss.Style
+		isFirst, isLast, isActive := i == 0, i == len(Tabs)-1, i == m.activeTab
+		if isActive {
+			style = activeTabStyle.Copy()
+		} else {
+			style = inactiveTabStyle.Copy()
+		}
+		border, _, _, _, _ := style.GetBorder()
+		if isFirst && isActive {
+			border.BottomLeft = "│"
+		} else if isFirst && !isActive {
+			border.BottomLeft = "├"
+		} else if isLast && isActive {
+			border.BottomRight = "│"
+		} else if isLast && !isActive {
+			border.BottomRight = "┤"
+		}
+		style = style.Border(border)
+		renderedTabs = append(renderedTabs, style.Render(t))
+	}
+
+	row := lipgloss.JoinHorizontal(lipgloss.Top, renderedTabs...)
+
+	return row
 }
