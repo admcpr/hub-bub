@@ -3,32 +3,34 @@ package models
 import "github.com/charmbracelet/lipgloss"
 
 var (
+	// Colors
+	purple     = "#cdb4db"
+	pink       = "#ffc8dd"
+	pinkDarker = "#ffafcc"
+	blue       = "#bde0fe"
+	blueDarker = "#a2d2ff"
+	white      = "#FFFDF5"
+
 	appStyle = lipgloss.NewStyle().Padding(1, 2)
 
 	titleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFFDF5")).
-			Background(lipgloss.Color("#25A065")).
+			Foreground(lipgloss.Color(white)).
+			Background(lipgloss.Color(blueDarker)).
 			Padding(0, 1)
 
 	titleHeight = 2
 
 	// Custom list
 	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
-	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color("170"))
+	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color(blue))
 
 	// Tabs
 	inactiveTabBorder = tabBorderWithBottom("┴", "─", "┴")
 	activeTabBorder   = tabBorderWithBottom("┘", " ", "└")
 	docStyle          = lipgloss.NewStyle().Padding(1, 2, 1, 2)
-	highlightColor    = lipgloss.AdaptiveColor{Light: "#874BFD", Dark: "#7D56F4"}
-	inactiveTabStyle  = lipgloss.NewStyle().Border(inactiveTabBorder, true).BorderForeground(highlightColor).Padding(0, 1)
+	highlightColor    = lipgloss.Color(pinkDarker)
+	borderColor       = lipgloss.Color(blueDarker)
+	inactiveTabStyle  = lipgloss.NewStyle().Border(inactiveTabBorder, true).BorderForeground(borderColor).Padding(0, 1)
 	activeTabStyle    = inactiveTabStyle.Copy().Border(activeTabBorder, true)
 	windowStyle       = lipgloss.NewStyle().BorderForeground(highlightColor).Padding(2, 0).Align(lipgloss.Center).Border(lipgloss.NormalBorder()).UnsetBorderTop()
-
-	// Colors
-	purple = "#cdb4db"
-	pink = "#ffc8dd"
-	pinkDarker = "#ffafcc"
-	blue = "#bde0fe"
-	blueDarker = "#a2d2ff"
 )

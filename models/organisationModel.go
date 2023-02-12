@@ -180,7 +180,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	// str := fmt.Sprintf("%s > %s", i.Title(), i.Description())
 
 	statusNugget := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FFFDF5")).
+		Foreground(lipgloss.Color(white)).
 		Padding(0, 1)
 
 	// statusBarStyle := lipgloss.NewStyle().
@@ -195,7 +195,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	// 	MarginRight(1)
 
 	encodingStyle := statusNugget.Copy().
-		Background(lipgloss.Color("#A550DF")).
+		Background(lipgloss.Color(pink)).
 		Align(lipgloss.Right)
 
 	// str := lipgloss.JoinHorizontal(lipgloss.Left, i.Title(), i.Description())
