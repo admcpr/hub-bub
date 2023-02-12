@@ -7,12 +7,9 @@ import (
 )
 
 type RepositorySetting struct {
-	Tab          string
 	Name         string
 	Value        string
 	Url          string
-	Loaded       bool
-	FromRest     bool
 	PropertyName string
 }
 
@@ -21,14 +18,11 @@ type RepositorySettingsTab struct {
 	Settings []RepositorySetting
 }
 
-func NewRepositorySetting(tab, name, value, url, propertyName string, loaded, fromRest bool) RepositorySetting {
+func NewRepositorySetting(name, value, url, propertyName string, loaded bool) RepositorySetting {
 	return RepositorySetting{
-		Tab:          tab,
 		Name:         name,
 		Value:        value,
 		Url:          url,
-		Loaded:       loaded,
-		FromRest:     fromRest,
 		PropertyName: propertyName,
 	}
 }
@@ -40,7 +34,7 @@ func NewRepositorySettingsTab(name string, settings []RepositorySetting) Reposit
 	}
 }
 
-func BuildRepositorySettings(ornq OrganisationRepositoryNodeQuery) []RepositorySettingsTab {
+func BuildRepositorySettings(ornq RepositoryQuery) []RepositorySettingsTab {
 	var respositorySettings []RepositorySettingsTab
 
 	return append(respositorySettings,
@@ -49,89 +43,47 @@ func BuildRepositorySettings(ornq OrganisationRepositoryNodeQuery) []RepositoryS
 		buildSecuritySettings(ornq))
 }
 
-func buildOverviewSettings(ornq OrganisationRepositoryNodeQuery) RepositorySettingsTab {
+func buildOverviewSettings(ornq RepositoryQuery) RepositorySettingsTab {
 	var repositorySettings []RepositorySetting
 
 	repositorySettings = append(repositorySettings,
-		NewRepositorySetting("Overview", "Name", ornq.Name, "", "", true, false),
-		NewRepositorySetting("Overview", "Url", ornq.Url, "", "", true, false),
-		NewRepositorySetting("Overview", "Private?", utils.YesNo(ornq.IsPrivate), "", "", true, false),
-		NewRepositorySetting("Overview", "Template?", utils.YesNo(ornq.IsTemplate), "", "", true, false),
-		NewRepositorySetting("Overview", "Archived?", utils.YesNo(ornq.IsArchived), "", "", true, false),
-		NewRepositorySetting("Overview", "Disabled?", utils.YesNo(ornq.IsDisabled), "", "", true, false),
-		NewRepositorySetting("Overview", "Fork?", utils.YesNo(ornq.IsFork), "", "", true, false),
-		NewRepositorySetting("Overview", "Last Updated?", fmt.Sprint(ornq.UpdatedAt), "", "", true, false),
-		NewRepositorySetting("Overview", "Stars", fmt.Sprint(ornq.StargazerCount), "", "", true, false),
-		NewRepositorySetting("Overview", "Wiki?", utils.YesNo(ornq.HasWikiEnabled), "", "", true, false),
-		NewRepositorySetting("Overview", "Issues?", utils.YesNo(ornq.HasIssuesEnabled), "", "", true, false),
-		NewRepositorySetting("Overview", "Projects?", utils.YesNo(ornq.HasProjectsEnabled), "", "", true, false),
-		NewRepositorySetting("Overview", "Discussions?", utils.YesNo(ornq.HasDiscussionsEnabled), "", "", true, false))
+		NewRepositorySetting("Name", ornq.Name, "", "", true),
+		NewRepositorySetting("Url", ornq.Url, "", "", true),
+		NewRepositorySetting("Private?", utils.YesNo(ornq.IsPrivate), "", "", true),
+		NewRepositorySetting("Template?", utils.YesNo(ornq.IsTemplate), "", "", true),
+		NewRepositorySetting("Archived?", utils.YesNo(ornq.IsArchived), "", "", true),
+		NewRepositorySetting("Disabled?", utils.YesNo(ornq.IsDisabled), "", "", true),
+		NewRepositorySetting("Fork?", utils.YesNo(ornq.IsFork), "", "", true),
+		NewRepositorySetting("Last Updated?", fmt.Sprint(ornq.UpdatedAt), "", "", true),
+		NewRepositorySetting("Stars", fmt.Sprint(ornq.StargazerCount), "", "", true),
+		NewRepositorySetting("Wiki?", utils.YesNo(ornq.HasWikiEnabled), "", "", true),
+		NewRepositorySetting("Issues?", utils.YesNo(ornq.HasIssuesEnabled), "", "", true),
+		NewRepositorySetting("Projects?", utils.YesNo(ornq.HasProjectsEnabled), "", "", true),
+		NewRepositorySetting("Discussions?", utils.YesNo(ornq.HasDiscussionsEnabled), "", "", true))
 
 	return NewRepositorySettingsTab("Overview", repositorySettings)
 }
 
-func buildDefaultBranchSettings(ornq OrganisationRepositoryNodeQuery) RepositorySettingsTab {
+func buildDefaultBranchSettings(ornq RepositoryQuery) RepositorySettingsTab {
 	var repositorySettings []RepositorySetting
 
-	repositorySettings = append(repositorySettings, NewRepositorySetting("Default Branch", "Name", ornq.DefaultBranchRef.Name, "", "", true, false))
-
-	repositorySettings = append(repositorySettings, NewRepositorySetting("Default Branch", "Requires Approving Reviews?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.RequiresApprovingReviews), "", "", true, false))
-	repositorySettings = append(repositorySettings, NewRepositorySetting("Default Branch", "Required Approving Review Count", fmt.Sprint(ornq.DefaultBranchRef.BranchProtectionRule.RequiredApprovingReviewCount), "", "", true, false))
-	repositorySettings = append(repositorySettings, NewRepositorySetting("Default Branch", "Requires Code Owner Reviews?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.RequiresCodeOwnerReviews), "", "", true, false))
-
-	repositorySettings = append(repositorySettings, NewRepositorySetting("Default Branch", "Protected?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.AllowsDeletions), "", "", true, false))
-	repositorySettings = append(repositorySettings, NewRepositorySetting("Default Branch", "Dismisses Stale Reviews?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.DismissesStaleReviews), "", "", true, false))
-	repositorySettings = append(repositorySettings, NewRepositorySetting("Default Branch", "Admin Enforced?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.IsAdminEnforced), "", "", true, false))
-	repositorySettings = append(repositorySettings, NewRepositorySetting("Default Branch", "Requires Commit Signatures?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.RequiresCommitSignatures), "", "", true, false))
-
-	repositorySettings = append(repositorySettings, NewRepositorySetting("Default Branch", "Allow Force Pushes?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.AllowsForcePushes), "", "", true, false))
-	repositorySettings = append(repositorySettings, NewRepositorySetting("Default Branch", "Allow Deletions?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.AllowsDeletions), "", "", true, false))
+	repositorySettings = append(repositorySettings,
+		NewRepositorySetting("Name", ornq.DefaultBranchRef.Name, "", "", true),
+		NewRepositorySetting("Requires Approving Reviews?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.RequiresApprovingReviews), "", "", true),
+		NewRepositorySetting("Required Approving Review Count", fmt.Sprint(ornq.DefaultBranchRef.BranchProtectionRule.RequiredApprovingReviewCount), "", "", true),
+		NewRepositorySetting("Requires Code Owner Reviews?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.RequiresCodeOwnerReviews), "", "", true),
+		NewRepositorySetting("Protected?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.AllowsDeletions), "", "", true),
+		NewRepositorySetting("Dismisses Stale Reviews?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.DismissesStaleReviews), "", "", true),
+		NewRepositorySetting("Admin Enforced?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.IsAdminEnforced), "", "", true),
+		NewRepositorySetting("Requires Commit Signatures?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.RequiresCommitSignatures), "", "", true),
+		NewRepositorySetting("Allow Force Pushes?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.AllowsForcePushes), "", "", true),
+		NewRepositorySetting("Allow Deletions?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.AllowsDeletions), "", "", true))
 
 	return NewRepositorySettingsTab("Default Branch", repositorySettings)
 }
 
-func buildSecuritySettings(ornq OrganisationRepositoryNodeQuery) RepositorySettingsTab {
+func buildSecuritySettings(ornq RepositoryQuery) RepositorySettingsTab {
 	var repositorySettings []RepositorySetting
 
 	return NewRepositorySettingsTab("Security", repositorySettings)
 }
-
-//  Name                  string
-// 	Url                   string
-// 	Id                    string
-// 	AutoMergeAllowed      bool
-// 	DeleteBranchOnMerge   bool
-// 	RebaseMergeAllowed    bool
-// 	- HasDiscussionsEnabled bool
-// 	- HasIssuesEnabled      bool
-// 	- HasWikiEnabled        bool
-// 	- HasProjectsEnabled    bool
-// 	- IsArchived            bool
-// 	- IsDisabled            bool
-// 	- IsFork                bool
-// 	IsLocked              bool
-// 	IsMirror              bool
-// 	- IsPrivate             bool
-// 	- IsTemplate            bool
-// 	- StargazerCount        int
-// 	SquashMergeAllowed    bool
-// 	UpdatedAt             time.Time
-// 	DefaultBranchRef      struct {
-// 		Name                 string
-// 		BranchProtectionRule struct {
-// 			AllowsDeletions                bool
-// 			AllowsForcePushes              bool
-// 			DismissesStaleReviews          bool
-// 			IsAdminEnforced                bool
-// 			RequiredApprovingReviewCount   int
-// 			RequiresApprovingReviews       bool
-// 			RequiresCodeOwnerReviews       bool
-// 			RequiresCommitSignatures       bool
-// 			RequiresConversationResolution bool
-// 			RequiresLinearHistory          bool
-// 			RequiresStatusChecks           bool
-// 		} `graphql:"branchProtectionRule"`
-// 	} `graphql:"defaultBranchRef"`
-// 	VulnerabilityAlerts struct {
-// 		TotalCount int
-// 	} `graphql:"vulnerabilityAlerts"`

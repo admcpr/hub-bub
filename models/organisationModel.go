@@ -160,6 +160,7 @@ func buildSettingListModel(tabSettings structs.RepositorySettingsTab, width, hei
 
 	list := list.New(items, itemDelegate{}, width, height-titleHeight-4)
 	list.Title = tabSettings.Name
+	list.SetShowHelp(false)
 	list.SetShowTitle(false)
 	list.SetShowStatusBar(false)
 
@@ -215,7 +216,10 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 }
 
 func (m OrganisationModel) Tabs() string {
-	Tabs := []string{"Overview", "Features", "PRs & Default Branch", "Security", "Wiki", "Settings"}
+	Tabs := []string{}
+	for _, t := range m.repositorySettingsTabs {
+		Tabs = append(Tabs, t.Name)
+	}
 
 	var renderedTabs []string
 

@@ -9,13 +9,13 @@ type OrganizationQuery struct {
 		Id           string
 		Repositories struct {
 			Edges []struct {
-				Node OrganisationRepositoryNodeQuery `graphql:"node"`
+				Node RepositoryQuery `graphql:"node"`
 			} `graphql:"edges"`
 		} `graphql:"repositories(first: $first)"`
 	} `graphql:"organization(login: $login)"`
 }
 
-type OrganisationRepositoryNodeQuery struct {
+type RepositoryQuery struct {
 	Name                          string
 	Url                           string
 	Id                            string
@@ -39,22 +39,24 @@ type OrganisationRepositoryNodeQuery struct {
 	UpdatedAt                     time.Time
 	DefaultBranchRef              struct {
 		Name                 string
-		BranchProtectionRule struct {
-			AllowsDeletions                bool
-			AllowsForcePushes              bool
-			DismissesStaleReviews          bool
-			IsAdminEnforced                bool
-			RequiredApprovingReviewCount   int
-			RequiresApprovingReviews       bool
-			RequiresCodeOwnerReviews       bool
-			RequiresCommitSignatures       bool
-			RequiresConversationResolution bool
-			RequiresLinearHistory          bool
-			RequiresStatusChecks           bool
-			RequiresStrictStatusChecks     bool
-		} `graphql:"branchProtectionRule"`
+		BranchProtectionRule BranchProtectionRuleQuery `graphql:"branchProtectionRule"`
 	} `graphql:"defaultBranchRef"`
 	VulnerabilityAlerts struct {
 		TotalCount int
 	} `graphql:"vulnerabilityAlerts"`
+}
+
+type BranchProtectionRuleQuery struct {
+	AllowsDeletions                bool
+	AllowsForcePushes              bool
+	DismissesStaleReviews          bool
+	IsAdminEnforced                bool
+	RequiredApprovingReviewCount   int
+	RequiresApprovingReviews       bool
+	RequiresCodeOwnerReviews       bool
+	RequiresCommitSignatures       bool
+	RequiresConversationResolution bool
+	RequiresLinearHistory          bool
+	RequiresStatusChecks           bool
+	RequiresStrictStatusChecks     bool
 }
