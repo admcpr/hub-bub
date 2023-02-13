@@ -110,7 +110,7 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // View implements tea.Model
 func (m OrganisationModel) View() string {
 	var repoList = appStyle.Render(m.repoList.View())
-	var settingList = lipgloss.JoinVertical(lipgloss.Left, m.Tabs(), appStyle.Render(m.settingList.View()))
+	var settingList = lipgloss.JoinVertical(lipgloss.Left, m.Tabs(), settingsStyle.Render(m.settingList.View()))
 
 	var views = []string{repoList, settingList}
 
@@ -145,7 +145,8 @@ func buildRepoListModel(organizationQuery structs.OrganizationQuery, width, heig
 	}
 
 	list := list.New(items, list.NewDefaultDelegate(), width, height-titleHeight)
-	list.Title = "Repositories"
+	list.Title = organizationQuery.Organization.Login
+	list.SetStatusBarItemName("Repository", "Repositories")
 	list.SetShowHelp(false)
 	list.SetShowTitle(true)
 

@@ -7,6 +7,8 @@ import (
 type OrganizationQuery struct {
 	Organization struct {
 		Id           string
+		Login        string
+		Url          string
 		Repositories struct {
 			Edges []struct {
 				Node RepositoryQuery `graphql:"node"`

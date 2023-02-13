@@ -33,6 +33,8 @@ var (
 	inactiveTabStyle  = lipgloss.NewStyle().Border(inactiveTabBorder, true).BorderForeground(borderColor).Padding(0, 1)
 	activeTabStyle    = inactiveTabStyle.Copy().Border(activeTabBorder, true)
 	windowStyle       = lipgloss.NewStyle().BorderForeground(highlightColor).Padding(2, 0).Align(lipgloss.Center).Border(lipgloss.NormalBorder()).UnsetBorderTop()
+
+	settingsStyle = appStyle.Copy().Border(lipgloss.RoundedBorder(), false, true, true).BorderForeground(borderColor).Padding(0, 1, 1, 1)
 )
 
 func tabBorderWithBottom(left, middle, right string) lipgloss.Border {

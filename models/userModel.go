@@ -104,6 +104,7 @@ func buildOrgListModel(organisations []structs.Organisation, width, height int) 
 	list := list.New(items, list.NewDefaultDelegate(), width, height-titleHeight)
 
 	list.Title = "Organisations"
+	list.SetStatusBarItemName("Organisation", "Organisations")
 	list.Styles.Title = titleStyle
 	list.SetShowTitle(true)
 
