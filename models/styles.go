@@ -11,7 +11,7 @@ var (
 	blueDarker = "#a2d2ff"
 	white      = "#FFFDF5"
 
-	appStyle = lipgloss.NewStyle().Padding(1, 2)
+	appStyle = lipgloss.NewStyle().Padding(1, 2).s
 
 	titleStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(white)).
@@ -21,8 +21,11 @@ var (
 	titleHeight = 2
 
 	// Custom list
-	itemStyle         = lipgloss.NewStyle().PaddingLeft(4)
-	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(2).Foreground(lipgloss.Color(blue))
+	itemStyle = lipgloss.NewStyle().
+			PaddingLeft(4)
+	selectedItemStyle = lipgloss.NewStyle().
+				PaddingLeft(2).
+				Foreground(lipgloss.Color(blue))
 
 	// Tabs
 	inactiveTabBorder = tabBorderWithBottom("┴", "─", "┴")
@@ -32,9 +35,9 @@ var (
 	borderColor       = lipgloss.Color(blueDarker)
 	inactiveTabStyle  = lipgloss.NewStyle().Border(inactiveTabBorder, true).BorderForeground(borderColor).Padding(0, 1)
 	activeTabStyle    = inactiveTabStyle.Copy().Border(activeTabBorder, true)
-	windowStyle       = lipgloss.NewStyle().BorderForeground(highlightColor).Padding(2, 0).Align(lipgloss.Center).Border(lipgloss.NormalBorder()).UnsetBorderTop()
 
-	settingsStyle = appStyle.Copy().Border(lipgloss.RoundedBorder(), false, true, true).BorderForeground(borderColor).Padding(0, 1, 1, 1)
+	settingsStyle = appStyle.Copy().Border(listSettingsBorder()).
+			BorderForeground(borderColor).Padding(0, 1, 1, 1)
 )
 
 func tabBorderWithBottom(left, middle, right string) lipgloss.Border {
@@ -42,5 +45,13 @@ func tabBorderWithBottom(left, middle, right string) lipgloss.Border {
 	border.BottomLeft = left
 	border.Bottom = middle
 	border.BottomRight = right
+	return border
+}
+
+func listSettingsBorder() lipgloss.Border {
+	border := lipgloss.RoundedBorder()
+	border.Top = "─"
+	border.TopLeft = "├"
+	border.TopRight = "┐"
 	return border
 }
