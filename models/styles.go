@@ -11,7 +11,7 @@ var (
 	blueDarker = "#a2d2ff"
 	white      = "#FFFDF5"
 
-	appStyle = lipgloss.NewStyle().Padding(1, 2).s
+	appStyle = lipgloss.NewStyle().Padding(1, 2)
 
 	titleStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(white)).

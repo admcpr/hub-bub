@@ -168,6 +168,7 @@ func buildSettingListModel(tabSettings structs.RepositorySettingsTab, width, hei
 	return list
 }
 
+// TODO: Pull this out into it's own file
 type itemDelegate struct{}
 
 func (d itemDelegate) Height() int                               { return 1 }
