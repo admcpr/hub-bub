@@ -1,8 +1,6 @@
 package models
 
 import (
-	"fmt"
-	"io"
 	"log"
 
 	"github.com/admcpr/hub-bub/messages"
@@ -35,14 +33,18 @@ func (m *OrganisationModel) initList() {
 	m.repoList = list.New(
 		[]list.Item{},
 		list.NewDefaultDelegate(),
-		m.width,
-		m.height,
+		// m.width,
+		// m.height,
+		0,
+		0,
 	)
 	m.settingList = list.New(
 		[]list.Item{},
 		list.NewDefaultDelegate(),
-		m.width,
-		m.height,
+		// m.width,
+		// m.height,
+		0,
+		0,
 	)
 }
 
@@ -69,7 +71,7 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.repoList = buildRepoListModel(msg.OrganizationQuery, m.width, m.height)
 		m.RepoQuery = msg.OrganizationQuery
 		m.repositorySettingsTabs = structs.BuildRepositorySettings(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
-		m.settingList = buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
+		m.buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
 		return m, nil
 
 	case tea.KeyMsg:
@@ -81,16 +83,16 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			case tea.KeyRight:
 				m.activeTab = min(m.activeTab+1, len(m.repositorySettingsTabs)-1)
-				m.settingList = buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
+				m.buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
 			case tea.KeyLeft:
 				m.activeTab = max(m.activeTab-1, 0)
-				m.settingList = buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
+				m.buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
 			}
 		} else {
 			switch msg.Type {
 			case tea.KeyDown, tea.KeyUp:
 				m.repositorySettingsTabs = structs.BuildRepositorySettings(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
-				m.settingList = buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
+				m.buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
 			case tea.KeyEnter:
 				m.tabsHaveFocus = true
 			case tea.KeyEsc:
@@ -100,6 +102,7 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "ctrl+c", "q":
 				return m, tea.Quit
 			}
+			m.repoList.SetWidth(200)
 			m.repoList, cmd = m.repoList.Update(msg)
 		}
 	}
@@ -153,68 +156,17 @@ func buildRepoListModel(organizationQuery structs.OrganizationQuery, width, heig
 	return list
 }
 
-func buildSettingListModel(tabSettings structs.RepositorySettingsTab, width, height int) list.Model {
+func (m *OrganisationModel) buildSettingListModel(tabSettings structs.RepositorySettingsTab, width, height int) {
 	items := make([]list.Item, len(tabSettings.Settings))
 	for i, setting := range tabSettings.Settings {
 		items[i] = structs.NewListItem(setting.Name, setting.Value)
 	}
 
-	list := list.New(items, itemDelegate{}, width, height-titleHeight-4)
-	list.Title = tabSettings.Name
-	list.SetShowHelp(false)
-	list.SetShowTitle(false)
-	list.SetShowStatusBar(false)
-
-	return list
-}
-
-// TODO: Pull this out into it's own file
-type itemDelegate struct{}
-
-func (d itemDelegate) Height() int                               { return 1 }
-func (d itemDelegate) Spacing() int                              { return 1 }
-func (d itemDelegate) Update(msg tea.Msg, m *list.Model) tea.Cmd { return nil }
-func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	i, ok := listItem.(structs.ListItem)
-	if !ok {
-		return
-	}
-
-	// str := fmt.Sprintf("%s > %s", i.Title(), i.Description())
-
-	statusNugget := lipgloss.NewStyle().
-		Foreground(lipgloss.Color(white)).
-		Padding(0, 1)
-
-	// statusBarStyle := lipgloss.NewStyle().
-	// 	Foreground(lipgloss.AdaptiveColor{Light: "#343433", Dark: "#C1C6B2"}).
-	// 	Background(lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#353533"})
-
-	// statusStyle := lipgloss.NewStyle().
-	// 	Inherit(statusBarStyle).
-	// 	Foreground(lipgloss.Color("#FFFDF5")).
-	// 	Background(lipgloss.Color("#FF5F87")).
-	// 	Padding(0, 1).
-	// 	MarginRight(1)
-
-	encodingStyle := statusNugget.Copy().
-		Background(lipgloss.Color(pink)).
-		Align(lipgloss.Right)
-
-	// str := lipgloss.JoinHorizontal(lipgloss.Left, i.Title(), i.Description())
-
-	title := statusNugget.Render(i.Title())
-	description := encodingStyle.Render(i.Description())
-
-	// fn := itemStyle.Render
-	// if index == m.Index() {
-	// 	fn = func(s string) string {
-	// 		return selectedItemStyle.Render("> " + s)
-	// 	}
-	// }
-	fn := lipgloss.JoinHorizontal
-
-	fmt.Fprint(w, fn(lipgloss.Left, title, description))
+	m.settingList = list.New(items, itemDelegate{}, width, height-titleHeight-4)
+	m.settingList.Title = tabSettings.Name
+	m.settingList.SetShowHelp(false)
+	m.settingList.SetShowTitle(false)
+	m.settingList.SetShowStatusBar(false)
 }
 
 func (m OrganisationModel) Tabs() string {
