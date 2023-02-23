@@ -71,7 +71,6 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.repoList = buildRepoListModel(msg.OrganizationQuery, m.width, m.height)
 		m.RepoQuery = msg.OrganizationQuery
 		m.repositorySettingsTabs = structs.BuildRepositorySettings(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
-		m.buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
 		return m, nil
 
 	case tea.KeyMsg:
@@ -83,16 +82,13 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			case tea.KeyRight:
 				m.activeTab = min(m.activeTab+1, len(m.repositorySettingsTabs)-1)
-				m.buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
 			case tea.KeyLeft:
 				m.activeTab = max(m.activeTab-1, 0)
-				m.buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
 			}
 		} else {
 			switch msg.Type {
 			case tea.KeyDown, tea.KeyUp:
 				m.repositorySettingsTabs = structs.BuildRepositorySettings(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
-				m.buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
 			case tea.KeyEnter:
 				m.tabsHaveFocus = true
 			case tea.KeyEsc:
@@ -106,6 +102,8 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.repoList, cmd = m.repoList.Update(msg)
 		}
 	}
+
+	m.buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
 
 	return m, cmd
 }
