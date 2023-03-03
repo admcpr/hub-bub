@@ -4,21 +4,48 @@ import (
 	"log"
 
 	"github.com/admcpr/hub-bub/messages"
-	"github.com/admcpr/hub-bub/queries"
 	"github.com/admcpr/hub-bub/structs"
-	"github.com/admcpr/hub-bub/utils"
-	"github.com/charmbracelet/bubbles/table"
+	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/cli/go-gh"
 	graphql "github.com/cli/shurcooL-graphql"
 )
 
-/* Repository model */
 type OrganisationModel struct {
-	Title           string
-	Url             string
-	RepositoryTable table.Model
+	Title     string
+	Url       string
+	RepoQuery structs.OrganizationQuery
+
+	repositorySettingsTabs []structs.RepositorySettingsTab
+
+	repoList    list.Model
+	settingList list.Model
+
+	activeTab     int
+	loaded        bool
+	width         int
+	height        int
+	tabsHaveFocus bool
+}
+
+func (m *OrganisationModel) initList() {
+	m.repoList = list.New(
+		[]list.Item{},
+		list.NewDefaultDelegate(),
+		// m.width,
+		// m.height,
+		0,
+		0,
+	)
+	m.settingList = list.New(
+		[]list.Item{},
+		list.NewDefaultDelegate(),
+		// m.width,
+		// m.height,
+		0,
+		0,
+	)
 }
 
 func (m OrganisationModel) Init() tea.Cmd {
@@ -30,32 +57,65 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 
+	case tea.WindowSizeMsg:
+		m.height = msg.Height
+		m.width = msg.Width
+
+		if !m.loaded {
+			m.initList()
+			m.loaded = true
+		}
+		return m, nil
+
 	case messages.RepositoryListMsg:
-		// m.RepositoryTable = buildRepositoryTable(msg.Repositories)
-		m.RepositoryTable = buildRepositoryTable(msg.OrganizationQuery)
+		m.repoList = buildRepoListModel(msg.OrganizationQuery, m.width, m.height)
+		m.RepoQuery = msg.OrganizationQuery
+		m.repositorySettingsTabs = structs.BuildRepositorySettings(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
 		return m, nil
 
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
-			return m, tea.Quit
-		case "enter", " ":
-			return m, tea.Batch(
-				tea.Printf("Let's go to %s!", m.RepositoryTable.SelectedRow()[1]),
-			)
-		case "esc":
-			return MainModel[UserModelName], nil
+		if m.tabsHaveFocus {
+			// Pass messages to repository model
+			switch msg.Type {
+			case tea.KeyEsc:
+				m.tabsHaveFocus = false
+				return m, nil
+			case tea.KeyRight:
+				m.activeTab = min(m.activeTab+1, len(m.repositorySettingsTabs)-1)
+			case tea.KeyLeft:
+				m.activeTab = max(m.activeTab-1, 0)
+			}
+		} else {
+			switch msg.Type {
+			case tea.KeyDown, tea.KeyUp:
+				m.repositorySettingsTabs = structs.BuildRepositorySettings(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
+			case tea.KeyEnter:
+				m.tabsHaveFocus = true
+			case tea.KeyEsc:
+				return MainModel[UserModelName], nil
+			}
+			switch msg.String() {
+			case "ctrl+c", "q":
+				return m, tea.Quit
+			}
+			m.repoList.SetWidth(200)
+			m.repoList, cmd = m.repoList.Update(msg)
 		}
 	}
 
-	m.RepositoryTable, cmd = m.RepositoryTable.Update(msg)
+	m.buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
 
 	return m, cmd
 }
 
 // View implements tea.Model
 func (m OrganisationModel) View() string {
-	return utils.BaseStyle.Render(m.RepositoryTable.View()) + "\n"
+	var repoList = appStyle.Width(m.width / 2).Render(m.repoList.View())
+	var settingList = lipgloss.JoinVertical(lipgloss.Left, m.Tabs(), settingsStyle.Width(m.width/2).Render(m.settingList.View()))
+
+	var views = []string{repoList, settingList}
+
+	return lipgloss.JoinHorizontal(lipgloss.Top, views...)
 }
 
 func (m OrganisationModel) GetRepositories() tea.Msg {
@@ -64,7 +124,7 @@ func (m OrganisationModel) GetRepositories() tea.Msg {
 		return messages.AuthenticationErrorMsg{Err: err}
 	}
 
-	var organizationQuery = queries.OrganizationQuery{}
+	var organizationQuery = structs.OrganizationQuery{}
 
 	variables := map[string]interface{}{
 		"login": graphql.String(m.Title),
@@ -78,83 +138,66 @@ func (m OrganisationModel) GetRepositories() tea.Msg {
 	return messages.RepositoryListMsg{OrganizationQuery: organizationQuery}
 }
 
-func buildOrganisationTable(organisations []structs.Organisation) table.Model {
-	columns := []table.Column{
-		{Title: "Login", Width: 20},
-		{Title: "Url", Width: 80},
+func buildRepoListModel(organizationQuery structs.OrganizationQuery, width, height int) list.Model {
+	edges := organizationQuery.Organization.Repositories.Edges
+	items := make([]list.Item, len(edges))
+	for i, repo := range edges {
+		items[i] = structs.NewListItem(repo.Node.Name, repo.Node.Url)
 	}
 
-	rows := make([]table.Row, len(organisations))
-	for i, org := range organisations {
-		rows[i] = table.Row{org.Login, org.Url}
-	}
+	list := list.New(items, list.NewDefaultDelegate(), width, height-titleHeight)
+	list.Title = organizationQuery.Organization.Login
+	list.SetStatusBarItemName("Repository", "Repositories")
+	list.SetShowHelp(false)
+	list.SetShowTitle(true)
 
-	t := table.New(
-		table.WithColumns(columns),
-		table.WithRows(rows),
-		table.WithFocused(true),
-		table.WithHeight(len(organisations)),
-	)
-
-	s := table.DefaultStyles()
-	s.Header = s.Header.
-		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("240")).
-		BorderBottom(true).
-		Bold(false)
-	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
-		Bold(false)
-	t.SetStyles(s)
-
-	return t
+	return list
 }
 
-func buildRepositoryTable(organizationQuery queries.OrganizationQuery) table.Model {
-	columns := []table.Column{
-		{Title: "Name", Width: 20},
-		{Title: "Issues", Width: 10},
-		{Title: "Wiki", Width: 10},
-		{Title: "Projects", Width: 10},
-		{Title: "Rebase Merge", Width: 10},
-		{Title: "Auto Merge", Width: 10},
-		{Title: "Delete Branch On Merge", Width: 10},
+func (m *OrganisationModel) buildSettingListModel(tabSettings structs.RepositorySettingsTab, width, height int) {
+	items := make([]list.Item, len(tabSettings.Settings))
+	for i, setting := range tabSettings.Settings {
+		items[i] = structs.NewListItem(setting.Name, setting.Value)
 	}
 
-	edges := organizationQuery.Organization.Repositories.Edges
+	m.settingList = list.New(items, itemDelegate{}, width, height-titleHeight-4)
+	m.settingList.Title = tabSettings.Name
+	m.settingList.SetShowHelp(false)
+	m.settingList.SetShowTitle(false)
+	m.settingList.SetShowStatusBar(false)
+}
 
-	rows := make([]table.Row, len(edges))
-	for i, repo := range edges {
-		rows[i] = table.Row{
-			repo.Node.Name,
-			utils.YesNo(repo.Node.HasIssuesEnabled),
-			utils.YesNo(repo.Node.HasWikiEnabled),
-			utils.YesNo(repo.Node.HasProjectsEnabled),
-			utils.YesNo(repo.Node.RebaseMergeAllowed),
-			utils.YesNo(repo.Node.AutoMergeAllowed),
-			utils.YesNo(repo.Node.DeleteBranchOnMerge),
+func (m OrganisationModel) Tabs() string {
+	Tabs := []string{}
+	for _, t := range m.repositorySettingsTabs {
+		Tabs = append(Tabs, t.Name)
+	}
+
+	var renderedTabs []string
+
+	for i, t := range Tabs {
+		var style lipgloss.Style
+		isFirst, isLast, isActive := i == 0, i == len(Tabs)-1, i == m.activeTab
+		if isActive {
+			style = activeTabStyle.Copy()
+		} else {
+			style = inactiveTabStyle.Copy()
 		}
+		border, _, _, _, _ := style.GetBorder()
+		if isFirst && isActive {
+			border.BottomLeft = "│"
+		} else if isFirst && !isActive {
+			border.BottomLeft = "├"
+		} else if isLast && isActive {
+			border.BottomRight = "│"
+		} else if isLast && !isActive {
+			border.BottomRight = "┤"
+		}
+		style = style.Border(border).Width(m.width / 2 / len(Tabs))
+		renderedTabs = append(renderedTabs, style.Render(t))
 	}
 
-	t := table.New(
-		table.WithColumns(columns),
-		table.WithRows(rows),
-		table.WithFocused(true),
-		table.WithHeight(len(edges)),
-	)
+	row := lipgloss.JoinHorizontal(lipgloss.Top, renderedTabs...)
 
-	s := table.DefaultStyles()
-	s.Header = s.Header.
-		BorderStyle(lipgloss.NormalBorder()).
-		BorderForeground(lipgloss.Color("240")).
-		BorderBottom(true).
-		Bold(false)
-	s.Selected = s.Selected.
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
-		Bold(false)
-	t.SetStyles(s)
-
-	return t
+	return row
 }

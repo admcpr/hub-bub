@@ -5,18 +5,29 @@ import (
 
 	"github.com/admcpr/hub-bub/messages"
 	"github.com/admcpr/hub-bub/structs"
-	"github.com/admcpr/hub-bub/utils"
 	"github.com/cli/go-gh"
 
-	"github.com/charmbracelet/bubbles/table"
+	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 type UserModel struct {
-	Authenticated     bool
-	User              structs.User
-	SelectedOrgUrl    string
-	OrganisationTable table.Model
+	Authenticated  bool
+	User           structs.User
+	SelectedOrgUrl string
+	list           list.Model
+	loaded         bool
+	width          int
+	height         int
+}
+
+func (m *UserModel) initList() {
+	m.list = list.New(
+		[]list.Item{},
+		list.NewDefaultDelegate(),
+		m.width,
+		m.height,
+	)
 }
 
 func (m UserModel) Init() tea.Cmd {
@@ -28,6 +39,16 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 
+	case tea.WindowSizeMsg:
+		m.height = msg.Height
+		m.width = msg.Width
+
+		if !m.loaded {
+			m.initList()
+			m.loaded = true
+		}
+		return m, nil
+
 	case messages.AuthenticationMsg:
 		m.Authenticated = true
 		m.User = msg.User
@@ -38,7 +59,7 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case messages.OrgListMsg:
-		m.OrganisationTable = buildOrganisationTable(msg.Organisations)
+		m.list = buildOrgListModel(msg.Organisations, m.width, m.height)
 		return m, nil
 
 	case tea.KeyMsg:
@@ -47,9 +68,12 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case "enter", " ":
 			MainModel[UserModelName] = m
+			item := m.list.SelectedItem()
 			orgModel := &OrganisationModel{
-				Title: m.OrganisationTable.SelectedRow()[0],
-				Url:   m.OrganisationTable.SelectedRow()[1],
+				Title:  item.(structs.ListItem).Title(),
+				Url:    item.(structs.ListItem).Description(),
+				width:  m.width,
+				height: m.height,
 			}
 
 			MainModel[OrganisationModelName] = orgModel
@@ -58,26 +82,36 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	m.OrganisationTable, cmd = m.OrganisationTable.Update(msg)
+	m.list, cmd = m.list.Update(msg)
 
 	return m, cmd
 }
 
 func (m UserModel) View() string {
-	s := fmt.Sprintln("Press q to quit.")
-
 	if !m.Authenticated {
-		return fmt.Sprintln("You are not authenticated try running `gh auth login`")
+		return fmt.Sprintln("You are not authenticated try running `gh auth login`. Press q to quit.")
 	}
 
-	s += fmt.Sprintf("Hello %s, press Enter to select an organisation.\n", m.User.Name)
-	s += utils.BaseStyle.Render(m.OrganisationTable.View()) + "\n"
+	return appStyle.Render(m.list.View())
+}
 
-	return s
+func buildOrgListModel(organisations []structs.Organisation, width, height int) list.Model {
+	items := make([]list.Item, len(organisations))
+	for i, org := range organisations {
+		items[i] = structs.NewListItem(org.Login, org.Url)
+	}
+
+	list := list.New(items, list.NewDefaultDelegate(), width, height-titleHeight)
+
+	list.Title = "Organisations"
+	list.SetStatusBarItemName("Organisation", "Organisations")
+	list.Styles.Title = titleStyle
+	list.SetShowTitle(true)
+
+	return list
 }
 
 func checkLoginStatus() tea.Msg {
-	// Use an API helper to grab repository tags
 	client, err := gh.RESTClient(nil)
 	if err != nil {
 		return messages.AuthenticationErrorMsg{Err: err}
