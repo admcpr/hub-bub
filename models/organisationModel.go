@@ -110,8 +110,8 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View implements tea.Model
 func (m OrganisationModel) View() string {
-	var repoList = appStyle.Render(m.repoList.View())
-	var settingList = lipgloss.JoinVertical(lipgloss.Left, m.Tabs(), settingsStyle.Render(m.settingList.View()))
+	var repoList = appStyle.Width(m.width / 2).Render(m.repoList.View())
+	var settingList = lipgloss.JoinVertical(lipgloss.Left, m.Tabs(), settingsStyle.Width(m.width/2).Render(m.settingList.View()))
 
 	var views = []string{repoList, settingList}
 
@@ -193,7 +193,7 @@ func (m OrganisationModel) Tabs() string {
 		} else if isLast && !isActive {
 			border.BottomRight = "┤"
 		}
-		style = style.Border(border)
+		style = style.Border(border).Width(m.width / 2 / len(Tabs))
 		renderedTabs = append(renderedTabs, style.Render(t))
 	}
 
