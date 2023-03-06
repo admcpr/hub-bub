@@ -17,11 +17,8 @@ type OrganisationModel struct {
 	Url       string
 	RepoQuery structs.OrganizationQuery
 
-	repositorySettingsTabs []structs.RepositorySettingsTab
-
-	repoList    list.Model
-	settingList list.Model
-	repoModel   RepositoryModel
+	repoList  list.Model
+	repoModel RepositoryModel
 
 	loaded        bool
 	width         int
@@ -33,6 +30,10 @@ func (m *OrganisationModel) panelWidth() int {
 	return m.width / 2
 }
 
+func (m *OrganisationModel) getSelectedRepo() structs.RepositoryQuery {
+	return m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node
+}
+
 func (m *OrganisationModel) init() {
 	m.repoList = list.New(
 		[]list.Item{},
@@ -42,14 +43,7 @@ func (m *OrganisationModel) init() {
 		0,
 		0,
 	)
-	m.settingList = list.New(
-		[]list.Item{},
-		list.NewDefaultDelegate(),
-		// m.width,
-		// m.height,
-		0,
-		0,
-	)
+
 	m.repoModel = NewRepositoryModel(m.panelWidth(), m.height)
 }
 
@@ -67,7 +61,7 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 
 		if !m.loaded {
-			m.initList()
+			m.init()
 			m.loaded = true
 		}
 		return m, nil
@@ -116,9 +110,9 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // View implements tea.Model
 func (m OrganisationModel) View() string {
 	var repoList = appStyle.Width((m.width / 2) - 4).Render(m.repoList.View())
-	var settingList = lipgloss.JoinVertical(lipgloss.Left, m.Tabs(), settingsStyle.Width(m.width/2).Render(m.settingList.View()))
-
-	var views = []string{repoList, settingList}
+	//	var settingList = lipgloss.JoinVertical(lipgloss.Left, m.Tabs(), settingsStyle.Width(m.width/2).Render(m.settingList.View()))
+	var settings = appStyle.Width(m.width / 2).Render(m.repoModel.View())
+	var views = []string{repoList, settings}
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, views...)
 }
@@ -157,53 +151,4 @@ func buildRepoListModel(organizationQuery structs.OrganizationQuery, width, heig
 	list.SetShowTitle(true)
 
 	return list
-}
-
-func (m *OrganisationModel) buildSettingListModel(tabSettings structs.RepositorySettingsTab, width, height int) {
-	items := make([]list.Item, len(tabSettings.Settings))
-	for i, setting := range tabSettings.Settings {
-		items[i] = structs.NewListItem(setting.Name, setting.Value)
-	}
-
-	m.settingList = list.New(items, itemDelegate{}, width, height-titleHeight-4)
-	m.settingList.Title = tabSettings.Name
-	m.settingList.SetShowHelp(false)
-	m.settingList.SetShowTitle(false)
-	m.settingList.SetShowStatusBar(false)
-}
-
-func (m OrganisationModel) Tabs() string {
-	Tabs := []string{}
-	for _, t := range m.repositorySettingsTabs {
-		Tabs = append(Tabs, t.Name)
-	}
-
-	var renderedTabs []string
-
-	for i, t := range Tabs {
-		var style lipgloss.Style
-		isFirst, isLast, isActive := i == 0, i == len(Tabs)-1, i == m.activeTab
-		if isActive {
-			style = activeTabStyle.Copy()
-		} else {
-			style = inactiveTabStyle.Copy()
-		}
-		border, _, _, _, _ := style.GetBorder()
-		if isFirst && isActive {
-			border.BottomLeft = "│"
-		} else if isFirst && !isActive {
-			border.BottomLeft = "├"
-		} else if isLast && isActive {
-			border.BottomRight = "│"
-		} else if isLast && !isActive {
-			border.BottomRight = "┤"
-		}
-		// TODO: Calculate width of tabs correctly so they match m.width
-		style = style.Border(border).Width((m.width / 2 / len(Tabs)) - 1)
-		renderedTabs = append(renderedTabs, style.Render(t))
-	}
-
-	row := lipgloss.JoinHorizontal(lipgloss.Top, renderedTabs...)
-
-	return row
 }

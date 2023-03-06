@@ -54,29 +54,9 @@ func (m RepositoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 
 		if !m.loaded {
-			m.initList()
 			m.loaded = true
 		}
 		return m, nil
-
-	case messages.RepoSelectedMsg:
-		m.repositorySettingsTabs = structs.BuildRepositorySettings(msg.RepositoryQuery)
-		return m, nil
-
-	// case messages.RepoListMsg:
-	// 	// m.repositorySettingsTabs = structs.BuildRepositorySettings(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
-	// 	return m, nil
-
-	case tea.KeyMsg:
-		switch msg.Type {
-		case tea.KeyEsc:
-			m.tabsHaveFocus = false
-			return m, nil
-		case tea.KeyRight:
-			m.activeTab = min(m.activeTab+1, len(m.repositorySettingsTabs)-1)
-		case tea.KeyLeft:
-			m.activeTab = max(m.activeTab-1, 0)
-		}
 	}
 
 	return m, cmd
