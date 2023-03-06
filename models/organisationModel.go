@@ -21,15 +21,19 @@ type OrganisationModel struct {
 
 	repoList    list.Model
 	settingList list.Model
+	repoModel   RepositoryModel
 
-	activeTab     int
 	loaded        bool
 	width         int
 	height        int
 	tabsHaveFocus bool
 }
 
-func (m *OrganisationModel) initList() {
+func (m *OrganisationModel) panelWidth() int {
+	return m.width / 2
+}
+
+func (m *OrganisationModel) init() {
 	m.repoList = list.New(
 		[]list.Item{},
 		list.NewDefaultDelegate(),
@@ -46,6 +50,7 @@ func (m *OrganisationModel) initList() {
 		0,
 		0,
 	)
+	m.repoModel = NewRepositoryModel(m.panelWidth(), m.height)
 }
 
 func (m OrganisationModel) Init() tea.Cmd {
@@ -70,7 +75,7 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case messages.RepositoryListMsg:
 		m.repoList = buildRepoListModel(msg.OrganizationQuery, m.width, m.height)
 		m.RepoQuery = msg.OrganizationQuery
-		m.repositorySettingsTabs = structs.BuildRepositorySettings(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
+		m.repoModel.SelectRepo(m.getSelectedRepo())
 		return m, nil
 
 	case tea.KeyMsg:
@@ -81,16 +86,17 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.tabsHaveFocus = false
 				return m, nil
 			case tea.KeyRight:
-				m.activeTab = min(m.activeTab+1, len(m.repositorySettingsTabs)-1)
+				m.repoModel.NextTab()
 			case tea.KeyLeft:
-				m.activeTab = max(m.activeTab-1, 0)
+				m.repoModel.PreviousTab()
 			}
 		} else {
 			switch msg.Type {
 			case tea.KeyDown, tea.KeyUp:
-				m.repositorySettingsTabs = structs.BuildRepositorySettings(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
+				m.repoModel.SelectRepo(m.getSelectedRepo())
 			case tea.KeyEnter:
 				m.tabsHaveFocus = true
+				m.repoModel.SelectRepo(m.getSelectedRepo())
 			case tea.KeyEsc:
 				return MainModel[UserModelName], nil
 			}
@@ -98,19 +104,18 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "ctrl+c", "q":
 				return m, tea.Quit
 			}
-			m.repoList.SetWidth(200)
 			m.repoList, cmd = m.repoList.Update(msg)
 		}
 	}
 
-	m.buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
+	// m.buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
 
 	return m, cmd
 }
 
 // View implements tea.Model
 func (m OrganisationModel) View() string {
-	var repoList = appStyle.Width(m.width / 2).Render(m.repoList.View())
+	var repoList = appStyle.Width((m.width / 2) - 4).Render(m.repoList.View())
 	var settingList = lipgloss.JoinVertical(lipgloss.Left, m.Tabs(), settingsStyle.Width(m.width/2).Render(m.settingList.View()))
 
 	var views = []string{repoList, settingList}
@@ -193,7 +198,8 @@ func (m OrganisationModel) Tabs() string {
 		} else if isLast && !isActive {
 			border.BottomRight = "┤"
 		}
-		style = style.Border(border).Width(m.width / 2 / len(Tabs))
+		// TODO: Calculate width of tabs correctly so they match m.width
+		style = style.Border(border).Width((m.width / 2 / len(Tabs)) - 1)
 		renderedTabs = append(renderedTabs, style.Render(t))
 	}
 

@@ -1,9 +1,8 @@
 package models
 
 import (
-	"github.com/admcpr/hub-bub/messages"
 	"github.com/admcpr/hub-bub/structs"
-	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -11,28 +10,38 @@ import (
 type RepositoryModel struct {
 	repositorySettingsTabs []structs.RepositorySettingsTab
 
-	settingList list.Model
+	settingsTable table.Model
 
-	activeTab     int
-	loaded        bool
-	width         int
-	height        int
-	tabsHaveFocus bool
+	activeTab int
+	loaded    bool
+	width     int
+	height    int
 }
 
-func (m *RepositoryModel) initList() {
-	m.settingList = list.New(
-		[]list.Item{},
-		list.NewDefaultDelegate(),
-		// m.width,
-		// m.height,
-		0,
-		0,
-	)
+func NewRepositoryModel(width, height int) RepositoryModel {
+	return RepositoryModel{
+		repositorySettingsTabs: []structs.RepositorySettingsTab{},
+		width:                  width,
+		height:                 height,
+	}
 }
 
 func (m RepositoryModel) Init() tea.Cmd {
 	return nil
+}
+
+func (m *RepositoryModel) SelectRepo(RepositoryQuery structs.RepositoryQuery) {
+	m.repositorySettingsTabs = structs.BuildRepositorySettings(RepositoryQuery)
+
+	m.buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
+}
+
+func (m *RepositoryModel) NextTab() {
+	m.activeTab = min(m.activeTab+1, len(m.repositorySettingsTabs)-1)
+}
+
+func (m *RepositoryModel) PreviousTab() {
+	m.activeTab = max(m.activeTab-1, 0)
 }
 
 func (m RepositoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -50,9 +59,13 @@ func (m RepositoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
-	case messages.RepositoryListMsg:
-		// m.repositorySettingsTabs = structs.BuildRepositorySettings(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
+	case messages.RepoSelectedMsg:
+		m.repositorySettingsTabs = structs.BuildRepositorySettings(msg.RepositoryQuery)
 		return m, nil
+
+	// case messages.RepoListMsg:
+	// 	// m.repositorySettingsTabs = structs.BuildRepositorySettings(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
+	// 	return m, nil
 
 	case tea.KeyMsg:
 		switch msg.Type {
@@ -66,29 +79,31 @@ func (m RepositoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	m.buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
-
 	return m, cmd
 }
 
 func (m RepositoryModel) View() string {
 	var tabs = m.RenderTabs()
-	var settings = settingsStyle.Render(m.settingList.View())
+	var settings = settingsStyle.Render(m.settingsTable.View())
 
 	return lipgloss.JoinVertical(lipgloss.Left, tabs, settings)
 }
 
 func (m *RepositoryModel) buildSettingListModel(tabSettings structs.RepositorySettingsTab, width, height int) {
-	items := make([]list.Item, len(tabSettings.Settings))
+	columns := []table.Column{{Title: "Name", Width: 30}, {Title: "Value", Width: 10}}
+
+	rows := make([]table.Row, len(tabSettings.Settings))
 	for i, setting := range tabSettings.Settings {
-		items[i] = structs.NewListItem(setting.Name, setting.Value)
+		rows[i] = table.Row{setting.Name, setting.Value}
 	}
 
-	m.settingList = list.New(items, itemDelegate{}, width, height-titleHeight-4)
-	m.settingList.Title = tabSettings.Name
-	m.settingList.SetShowHelp(false)
-	m.settingList.SetShowTitle(false)
-	m.settingList.SetShowStatusBar(false)
+	m.settingsTable = table.New(
+		table.WithColumns(columns),
+		table.WithRows(rows),
+		table.WithWidth(width),
+		table.WithHeight(20))
+	// table.WithHeight(height-titleHeight-4))
+
 }
 
 func (m RepositoryModel) RenderTabs() string {
@@ -117,7 +132,8 @@ func (m RepositoryModel) RenderTabs() string {
 		} else if isLast && !isActive {
 			border.BottomRight = "┤"
 		}
-		style = style.Border(border)
+		// TODO: Calculate width of tabs correctly so they match m.width
+		style = style.Border(border) //.Width((m.width / len(Tabs)) - 1)
 		renderedTabs = append(renderedTabs, style.Render(t))
 	}
 
