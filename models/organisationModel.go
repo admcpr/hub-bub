@@ -21,6 +21,7 @@ type OrganisationModel struct {
 
 	repoList    list.Model
 	settingList list.Model
+	repoModel   RepositoryModel
 
 	activeTab     int
 	loaded        bool
@@ -29,7 +30,11 @@ type OrganisationModel struct {
 	tabsHaveFocus bool
 }
 
-func (m *OrganisationModel) initList() {
+func (m *OrganisationModel) panelWidth() int {
+	return m.width / 2
+}
+
+func (m *OrganisationModel) init() {
 	m.repoList = list.New(
 		[]list.Item{},
 		list.NewDefaultDelegate(),
@@ -46,6 +51,7 @@ func (m *OrganisationModel) initList() {
 		0,
 		0,
 	)
+	m.repoModel = NewRepositoryModel(m.panelWidth(), m.height)
 }
 
 func (m OrganisationModel) Init() tea.Cmd {
@@ -62,12 +68,12 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 
 		if !m.loaded {
-			m.initList()
+			m.init()
 			m.loaded = true
 		}
 		return m, nil
 
-	case messages.RepositoryListMsg:
+	case messages.RepoListMsg:
 		m.repoList = buildRepoListModel(msg.OrganizationQuery, m.width, m.height)
 		m.RepoQuery = msg.OrganizationQuery
 		m.repositorySettingsTabs = structs.BuildRepositorySettings(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
@@ -110,7 +116,7 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View implements tea.Model
 func (m OrganisationModel) View() string {
-	var repoList = appStyle.Width(m.width / 2).Render(m.repoList.View())
+	var repoList = appStyle.Width((m.width / 2) - 4).Render(m.repoList.View())
 	var settingList = lipgloss.JoinVertical(lipgloss.Left, m.Tabs(), settingsStyle.Width(m.width/2).Render(m.settingList.View()))
 
 	var views = []string{repoList, settingList}
@@ -135,7 +141,7 @@ func (m OrganisationModel) GetRepositories() tea.Msg {
 		log.Fatal(err)
 	}
 
-	return messages.RepositoryListMsg{OrganizationQuery: organizationQuery}
+	return messages.RepoListMsg{OrganizationQuery: organizationQuery}
 }
 
 func buildRepoListModel(organizationQuery structs.OrganizationQuery, width, height int) list.Model {
@@ -193,7 +199,8 @@ func (m OrganisationModel) Tabs() string {
 		} else if isLast && !isActive {
 			border.BottomRight = "┤"
 		}
-		style = style.Border(border).Width(m.width / 2 / len(Tabs))
+		// TODO: Calculate width of tabs correctly so they match m.width
+		style = style.Border(border).Width((m.width / 2 / len(Tabs)) - 1)
 		renderedTabs = append(renderedTabs, style.Render(t))
 	}
 

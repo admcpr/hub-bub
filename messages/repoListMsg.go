@@ -4,6 +4,6 @@ import (
 	"github.com/admcpr/hub-bub/structs"
 )
 
-type RepositoryListMsg struct {
+type RepoListMsg struct {
 	OrganizationQuery structs.OrganizationQuery
 }
