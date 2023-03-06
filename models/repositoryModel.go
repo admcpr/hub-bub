@@ -35,7 +35,6 @@ func (m *RepositoryModel) SelectRepo(RepositoryQuery structs.RepositoryQuery, wi
 
 	m.width = width
 	m.height = height
-	m.buildSettingsTable(m.repositorySettingsTabs[m.activeTab])
 }
 
 func (m *RepositoryModel) NextTab() {
@@ -61,18 +60,25 @@ func (m RepositoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m RepositoryModel) View() string {
+	if m.repositorySettingsTabs == nil || len(m.repositorySettingsTabs) == 0 {
+		return ""
+	}
+
+	m.buildSettingsTable()
+
 	var tabs = m.RenderTabs()
 	var settings = settingsStyle.Padding(0).Width(m.width - 6).Render(m.settingsTable.View())
 
 	return lipgloss.JoinVertical(lipgloss.Left, tabs, settings)
 }
 
-func (m *RepositoryModel) buildSettingsTable(tabSettings structs.RepositorySettingsTab) {
+func (m *RepositoryModel) buildSettingsTable() {
+	var activeSettings = m.repositorySettingsTabs[m.activeTab]
 
 	columns := []table.Column{{Title: "", Width: 20}, {Title: "", Width: 11}}
 
-	rows := make([]table.Row, len(tabSettings.Settings))
-	for i, setting := range tabSettings.Settings {
+	rows := make([]table.Row, len(activeSettings.Settings))
+	for i, setting := range activeSettings.Settings {
 		rows[i] = table.Row{setting.Name, setting.Value}
 	}
 
