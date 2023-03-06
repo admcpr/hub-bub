@@ -19,6 +19,7 @@ type OrganisationModel struct {
 
 	repoList  list.Model
 	repoModel RepositoryModel
+	activeTab     int
 
 	loaded        bool
 	width         int
@@ -44,7 +45,7 @@ func (m *OrganisationModel) init() {
 		0,
 	)
 
-	m.repoModel = NewRepositoryModel(m.panelWidth(), m.height)
+  m.repoModel = NewRepositoryModel(m.panelWidth(), m.height)
 }
 
 func (m OrganisationModel) Init() tea.Cmd {
@@ -66,7 +67,7 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, nil
 
-	case messages.RepositoryListMsg:
+	case messages.RepoListMsg:
 		m.repoList = buildRepoListModel(msg.OrganizationQuery, m.width, m.height)
 		m.RepoQuery = msg.OrganizationQuery
 		m.repoModel.SelectRepo(m.getSelectedRepo())
@@ -110,7 +111,6 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // View implements tea.Model
 func (m OrganisationModel) View() string {
 	var repoList = appStyle.Width((m.width / 2) - 4).Render(m.repoList.View())
-	//	var settingList = lipgloss.JoinVertical(lipgloss.Left, m.Tabs(), settingsStyle.Width(m.width/2).Render(m.settingList.View()))
 	var settings = appStyle.Width(m.width / 2).Render(m.repoModel.View())
 	var views = []string{repoList, settings}
 
@@ -134,7 +134,7 @@ func (m OrganisationModel) GetRepositories() tea.Msg {
 		log.Fatal(err)
 	}
 
-	return messages.RepositoryListMsg{OrganizationQuery: organizationQuery}
+	return messages.RepoListMsg{OrganizationQuery: organizationQuery}
 }
 
 func buildRepoListModel(organizationQuery structs.OrganizationQuery, width, height int) list.Model {
