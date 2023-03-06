@@ -20,15 +20,13 @@ type RepositoryModel struct {
 	tabsHaveFocus bool
 }
 
-func (m *RepositoryModel) initList() {
-	m.settingList = list.New(
-		[]list.Item{},
-		list.NewDefaultDelegate(),
-		// m.width,
-		// m.height,
-		0,
-		0,
-	)
+func NewRepositoryModel(width, height int) RepositoryModel {
+	return RepositoryModel{
+		repositorySettingsTabs: []structs.RepositorySettingsTab{},
+		settingList:            list.New([]list.Item{}, list.NewDefaultDelegate(), 0, 0),
+		width:                  width,
+		height:                 height,
+	}
 }
 
 func (m RepositoryModel) Init() tea.Cmd {
@@ -45,14 +43,17 @@ func (m RepositoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 
 		if !m.loaded {
-			m.initList()
 			m.loaded = true
 		}
 		return m, nil
 
-	case messages.RepositoryListMsg:
-		// m.repositorySettingsTabs = structs.BuildRepositorySettings(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
+	case messages.RepoSelectedMsg:
+		m.repositorySettingsTabs = structs.BuildRepositorySettings(msg.RepositoryQuery)
 		return m, nil
+
+	// case messages.RepoListMsg:
+	// 	// m.repositorySettingsTabs = structs.BuildRepositorySettings(m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node)
+	// 	return m, nil
 
 	case tea.KeyMsg:
 		switch msg.Type {
