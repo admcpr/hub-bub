@@ -30,10 +30,12 @@ func (m RepositoryModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m *RepositoryModel) SelectRepo(RepositoryQuery structs.RepositoryQuery) {
+func (m *RepositoryModel) SelectRepo(RepositoryQuery structs.RepositoryQuery, width, height int) {
 	m.repositorySettingsTabs = structs.BuildRepositorySettings(RepositoryQuery)
 
-	m.buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
+	m.width = width
+	m.height = height
+	m.buildSettingsTable(m.repositorySettingsTabs[m.activeTab])
 }
 
 func (m *RepositoryModel) NextTab() {
@@ -60,13 +62,14 @@ func (m RepositoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m RepositoryModel) View() string {
 	var tabs = m.RenderTabs()
-	var settings = settingsStyle.Render(m.settingsTable.View())
+	var settings = settingsStyle.Padding(0).Width(m.width - 6).Render(m.settingsTable.View())
 
 	return lipgloss.JoinVertical(lipgloss.Left, tabs, settings)
 }
 
-func (m *RepositoryModel) buildSettingListModel(tabSettings structs.RepositorySettingsTab, width, height int) {
-	columns := []table.Column{{Title: "Name", Width: 30}, {Title: "Value", Width: 10}}
+func (m *RepositoryModel) buildSettingsTable(tabSettings structs.RepositorySettingsTab) {
+
+	columns := []table.Column{{Title: "", Width: 20}, {Title: "", Width: 11}}
 
 	rows := make([]table.Row, len(tabSettings.Settings))
 	for i, setting := range tabSettings.Settings {
@@ -75,11 +78,7 @@ func (m *RepositoryModel) buildSettingListModel(tabSettings structs.RepositorySe
 
 	m.settingsTable = table.New(
 		table.WithColumns(columns),
-		table.WithRows(rows),
-		table.WithWidth(width),
-		table.WithHeight(20))
-	// table.WithHeight(height-titleHeight-4))
-
+		table.WithRows(rows))
 }
 
 func (m RepositoryModel) RenderTabs() string {
@@ -109,7 +108,12 @@ func (m RepositoryModel) RenderTabs() string {
 			border.BottomRight = "┤"
 		}
 		// TODO: Calculate width of tabs correctly so they match m.width
-		style = style.Border(border) //.Width((m.width / len(Tabs)) - 1)
+		if isLast {
+			style = style.Border(border).Width((m.width / len(Tabs)) - 4)
+		} else {
+			style = style.Border(border).Width((m.width / len(Tabs)) - 3)
+		}
+
 		renderedTabs = append(renderedTabs, style.Render(t))
 	}
 

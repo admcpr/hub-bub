@@ -35,7 +35,7 @@ var (
 	inactiveTabStyle = lipgloss.NewStyle().Border(inactiveTabBorder, true).BorderForeground(borderColor).Padding(0, 1)
 	activeTabStyle   = inactiveTabStyle.Copy().Border(activeTabBorder, true)
 
-	settingsStyle = appStyle.Copy().Border(listSettingsBorder()).
+	settingsStyle = appStyle.Copy().Border(settingsBorder()).
 			BorderForeground(borderColor).Padding(0, 1, 1, 1)
 )
 
@@ -47,10 +47,10 @@ func tabBorderWithBottom(left, middle, right string) lipgloss.Border {
 	return border
 }
 
-func listSettingsBorder() lipgloss.Border {
+func settingsBorder() lipgloss.Border {
 	border := lipgloss.RoundedBorder()
-	border.Top = "─"
-	border.TopLeft = "├"
-	border.TopRight = "┐"
+	border.Top = ""
+	border.TopLeft = "│"
+	border.TopRight = "│"
 	return border
 }
