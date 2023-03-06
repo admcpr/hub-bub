@@ -19,7 +19,6 @@ type OrganisationModel struct {
 
 	repoList  list.Model
 	repoModel RepositoryModel
-	activeTab     int
 
 	loaded        bool
 	width         int
@@ -39,13 +38,11 @@ func (m *OrganisationModel) init() {
 	m.repoList = list.New(
 		[]list.Item{},
 		list.NewDefaultDelegate(),
-		// m.width,
-		// m.height,
-		0,
-		0,
+		m.panelWidth(),
+		m.height,
 	)
 
-  m.repoModel = NewRepositoryModel(m.panelWidth(), m.height)
+	m.repoModel = NewRepositoryModel(m.panelWidth(), m.height)
 }
 
 func (m OrganisationModel) Init() tea.Cmd {
@@ -85,6 +82,7 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case tea.KeyLeft:
 				m.repoModel.PreviousTab()
 			}
+			// m.repoModel, cmd = m.repoModel.Update(msg)
 		} else {
 			switch msg.Type {
 			case tea.KeyDown, tea.KeyUp:
@@ -103,15 +101,14 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	// m.buildSettingListModel(m.repositorySettingsTabs[m.activeTab], m.width, m.height)
-
 	return m, cmd
 }
 
 // View implements tea.Model
 func (m OrganisationModel) View() string {
-	var repoList = appStyle.Width((m.width / 2) - 4).Render(m.repoList.View())
-	var settings = appStyle.Width(m.width / 2).Render(m.repoModel.View())
+	var repoList = appStyle.Width(m.panelWidth() - 4).Render(m.repoList.View())
+	var settings = appStyle.Width(m.panelWidth()).Render(m.repoModel.View())
+
 	var views = []string{repoList, settings}
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, views...)

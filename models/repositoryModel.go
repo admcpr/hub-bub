@@ -47,12 +47,8 @@ func (m *RepositoryModel) PreviousTab() {
 func (m RepositoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
-	switch msg := msg.(type) {
-
+	switch msg.(type) {
 	case tea.WindowSizeMsg:
-		m.height = msg.Height
-		m.width = msg.Width
-
 		if !m.loaded {
 			m.loaded = true
 		}
