@@ -47,21 +47,33 @@ func buildOverviewSettings(ornq RepositoryQuery) RepositorySettingsTab {
 	var repositorySettings []RepositorySetting
 
 	repositorySettings = append(repositorySettings,
-		NewRepositorySetting("Name", ornq.Name, "", "", true),
-		NewRepositorySetting("Url", ornq.Url, "", "", true),
-		NewRepositorySetting("Private?", utils.YesNo(ornq.IsPrivate), "", "", true),
-		NewRepositorySetting("Template?", utils.YesNo(ornq.IsTemplate), "", "", true),
-		NewRepositorySetting("Archived?", utils.YesNo(ornq.IsArchived), "", "", true),
-		NewRepositorySetting("Disabled?", utils.YesNo(ornq.IsDisabled), "", "", true),
-		NewRepositorySetting("Fork?", utils.YesNo(ornq.IsFork), "", "", true),
-		NewRepositorySetting("Last Updated?", fmt.Sprint(ornq.UpdatedAt), "", "", true),
+		NewRepositorySetting("Private", utils.YesNo(ornq.IsPrivate), "", "", true),
+		NewRepositorySetting("Template", utils.YesNo(ornq.IsTemplate), "", "", true),
+		NewRepositorySetting("Archived", utils.YesNo(ornq.IsArchived), "", "", true),
+		NewRepositorySetting("Disabled", utils.YesNo(ornq.IsDisabled), "", "", true),
+		NewRepositorySetting("Fork", utils.YesNo(ornq.IsFork), "", "", true),
+		NewRepositorySetting("Last updated", fmt.Sprint(ornq.UpdatedAt), "", "", true),
 		NewRepositorySetting("Stars", fmt.Sprint(ornq.StargazerCount), "", "", true),
-		NewRepositorySetting("Wiki?", utils.YesNo(ornq.HasWikiEnabled), "", "", true),
-		NewRepositorySetting("Issues?", utils.YesNo(ornq.HasIssuesEnabled), "", "", true),
-		NewRepositorySetting("Projects?", utils.YesNo(ornq.HasProjectsEnabled), "", "", true),
-		NewRepositorySetting("Discussions?", utils.YesNo(ornq.HasDiscussionsEnabled), "", "", true))
+		NewRepositorySetting("Wiki", utils.YesNo(ornq.HasWikiEnabled), "", "", true),
+		NewRepositorySetting("Issues", utils.YesNo(ornq.HasIssuesEnabled), "", "", true),
+		NewRepositorySetting("Projects", utils.YesNo(ornq.HasProjectsEnabled), "", "", true),
+		NewRepositorySetting("Discussions", utils.YesNo(ornq.HasDiscussionsEnabled), "", "", true))
 
 	return NewRepositorySettingsTab("Overview", repositorySettings)
+}
+
+func buildPullRequestSettings(ornq RepositoryQuery) RepositorySettingsTab {
+	var repositorySettings []RepositorySetting
+
+	repositorySettings = append(repositorySettings,
+		NewRepositorySetting("Allow merge commits", utils.YesNo(ornq.MergeCommitAllowed), "", "", true),
+		NewRepositorySetting("Allow squash merging", utils.YesNo(ornq.SquashMergeAllowed), "", "", true),
+		NewRepositorySetting("Allow rebase merging", utils.YesNo(ornq.RebaseMergeAllowed), "", "", true),
+		NewRepositorySetting("Allow auto-merge", utils.YesNo(ornq.AutoMergeAllowed), "", "", true),
+		NewRepositorySetting("Automatically delete head branches", utils.YesNo(ornq.DeleteBranchOnMerge), "", "", true),
+	)
+
+	return NewRepositorySettingsTab("Pull Requests", repositorySettings)
 }
 
 func buildDefaultBranchSettings(ornq RepositoryQuery) RepositorySettingsTab {
@@ -69,7 +81,7 @@ func buildDefaultBranchSettings(ornq RepositoryQuery) RepositorySettingsTab {
 
 	repositorySettings = append(repositorySettings,
 		NewRepositorySetting("Name", ornq.DefaultBranchRef.Name, "", "", true),
-		NewRepositorySetting("Requires Approving Reviews?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.RequiresApprovingReviews), "", "", true),
+		NewRepositorySetting("Require approving reviews", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.RequiresApprovingReviews), "", "", true),
 		NewRepositorySetting("Required Approving Review Count", fmt.Sprint(ornq.DefaultBranchRef.BranchProtectionRule.RequiredApprovingReviewCount), "", "", true),
 		NewRepositorySetting("Requires Code Owner Reviews?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.RequiresCodeOwnerReviews), "", "", true),
 		NewRepositorySetting("Protected?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.AllowsDeletions), "", "", true),
@@ -84,6 +96,11 @@ func buildDefaultBranchSettings(ornq RepositoryQuery) RepositorySettingsTab {
 
 func buildSecuritySettings(ornq RepositoryQuery) RepositorySettingsTab {
 	var repositorySettings []RepositorySetting
+
+	repositorySettings = append(repositorySettings,
+		NewRepositorySetting("Vulnerability Alerts Enabled?", utils.YesNo(ornq.HasVulnerabilityAlertsEnabled), "", "", true),
+		NewRepositorySetting("Vulnerability Alert Count", fmt.Sprint(ornq.VulnerabilityAlerts.TotalCount), "", "", true),
+	)
 
 	return NewRepositorySettingsTab("Security", repositorySettings)
 }

@@ -24,6 +24,7 @@ type RepositoryQuery struct {
 	AutoMergeAllowed              bool
 	DeleteBranchOnMerge           bool
 	RebaseMergeAllowed            bool
+	MergeCommitAllowed            bool
 	HasDiscussionsEnabled         bool
 	HasIssuesEnabled              bool
 	HasWikiEnabled                bool
