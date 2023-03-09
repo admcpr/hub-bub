@@ -75,7 +75,7 @@ func (m RepositoryModel) View() string {
 func (m *RepositoryModel) buildSettingsTable() {
 	var activeSettings = m.repositorySettingsTabs[m.activeTab]
 
-	columns := []table.Column{{Title: "", Width: 20}, {Title: "", Width: 11}}
+	columns := []table.Column{{Title: "", Width: 40}, {Title: "", Width: 11}}
 
 	rows := make([]table.Row, len(activeSettings.Settings))
 	for i, setting := range activeSettings.Settings {
@@ -113,7 +113,7 @@ func (m RepositoryModel) RenderTabs() string {
 		} else if isLast && !isActive {
 			border.BottomRight = "┤"
 		}
-		// TODO: Calculate width of tabs correctly so they match m.width
+
 		if isLast {
 			style = style.Border(border).Width((m.width / len(Tabs)) - 4)
 		} else {
