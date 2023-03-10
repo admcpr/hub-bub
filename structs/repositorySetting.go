@@ -113,8 +113,8 @@ func buildSecuritySettings(ornq RepositoryQuery) RepositorySettingsTab {
 	var repositorySettings []RepositorySetting
 
 	repositorySettings = append(repositorySettings,
-		NewRepositorySetting("Vulnerability Alerts Enabled?", utils.YesNo(ornq.HasVulnerabilityAlertsEnabled), "", "", true),
-		NewRepositorySetting("Vulnerability Alert Count", fmt.Sprint(ornq.VulnerabilityAlerts.TotalCount), "", "", true),
+		NewRepositorySetting("Vulnerability alerts enabled", utils.YesNo(ornq.HasVulnerabilityAlertsEnabled), "", "", true),
+		NewRepositorySetting("Vulnerability alert count", fmt.Sprint(ornq.VulnerabilityAlerts.TotalCount), "", "", true),
 	)
 
 	return NewRepositorySettingsTab("Security", repositorySettings)
