@@ -115,7 +115,7 @@ func (m RepositoryModel) RenderTabs() string {
 		}
 
 		if isLast {
-			style = style.Border(border).Width((m.width / len(Tabs)) - 4)
+			style = style.Border(border).Width((m.width / len(Tabs)) - 1)
 		} else {
 			style = style.Border(border).Width((m.width / len(Tabs)) - 3)
 		}

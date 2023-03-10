@@ -39,6 +39,7 @@ func BuildRepositorySettings(ornq RepositoryQuery) []RepositorySettingsTab {
 
 	return append(respositorySettings,
 		buildOverviewSettings(ornq),
+		buildPullRequestSettings(ornq),
 		buildDefaultBranchSettings(ornq),
 		buildSecuritySettings(ornq))
 }
@@ -52,7 +53,7 @@ func buildOverviewSettings(ornq RepositoryQuery) RepositorySettingsTab {
 		NewRepositorySetting("Archived", utils.YesNo(ornq.IsArchived), "", "", true),
 		NewRepositorySetting("Disabled", utils.YesNo(ornq.IsDisabled), "", "", true),
 		NewRepositorySetting("Fork", utils.YesNo(ornq.IsFork), "", "", true),
-		NewRepositorySetting("Last updated", fmt.Sprint(ornq.UpdatedAt), "", "", true),
+		NewRepositorySetting("Last updated", ornq.UpdatedAt.Format("2006/01/02"), "", "", true),
 		NewRepositorySetting("Stars", fmt.Sprint(ornq.StargazerCount), "", "", true),
 		NewRepositorySetting("Wiki", utils.YesNo(ornq.HasWikiEnabled), "", "", true),
 		NewRepositorySetting("Issues", utils.YesNo(ornq.HasIssuesEnabled), "", "", true),
@@ -79,17 +80,32 @@ func buildPullRequestSettings(ornq RepositoryQuery) RepositorySettingsTab {
 func buildDefaultBranchSettings(ornq RepositoryQuery) RepositorySettingsTab {
 	var repositorySettings []RepositorySetting
 
+	rule := ornq.DefaultBranchRef.BranchProtectionRule
+
 	repositorySettings = append(repositorySettings,
 		NewRepositorySetting("Name", ornq.DefaultBranchRef.Name, "", "", true),
-		NewRepositorySetting("Require approving reviews", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.RequiresApprovingReviews), "", "", true),
-		NewRepositorySetting("Required Approving Review Count", fmt.Sprint(ornq.DefaultBranchRef.BranchProtectionRule.RequiredApprovingReviewCount), "", "", true),
-		NewRepositorySetting("Requires Code Owner Reviews?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.RequiresCodeOwnerReviews), "", "", true),
-		NewRepositorySetting("Protected?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.AllowsDeletions), "", "", true),
-		NewRepositorySetting("Dismisses Stale Reviews?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.DismissesStaleReviews), "", "", true),
-		NewRepositorySetting("Admin Enforced?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.IsAdminEnforced), "", "", true),
-		NewRepositorySetting("Requires Commit Signatures?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.RequiresCommitSignatures), "", "", true),
-		NewRepositorySetting("Allow Force Pushes?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.AllowsForcePushes), "", "", true),
-		NewRepositorySetting("Allow Deletions?", utils.YesNo(ornq.DefaultBranchRef.BranchProtectionRule.AllowsDeletions), "", "", true))
+		NewRepositorySetting("Require approving reviews", utils.YesNo(rule.RequiresApprovingReviews), "", "", true),
+		NewRepositorySetting("Number of approvals required", fmt.Sprint(rule.RequiredApprovingReviewCount), "", "", true),
+		NewRepositorySetting("Dismiss stale requests", utils.YesNo(rule.DismissesStaleReviews), "", "", true),
+		NewRepositorySetting("Require review from Code Owners", utils.YesNo(rule.RequiresCodeOwnerReviews), "", "", true),
+		// Restrict who can dismiss pull request reviews
+		// Allow specified actors to bypass required pull requests
+		// Require approval of the most recent reviewable push
+
+		// Require status checks to pass before merging
+		NewRepositorySetting("Require status checks to pass before merging", utils.YesNo(rule.RequiresStatusChecks), "", "", true),
+		// Require conversation resolution before merging
+		NewRepositorySetting("Requires signed commits", utils.YesNo(rule.RequiresCommitSignatures), "", "", true),
+		NewRepositorySetting("Require linear history", utils.YesNo(rule.RequiresLinearHistory), "", "", true),
+		// NewRepositorySetting("Require deployments to succeed before merging", utils.YesNo(rule.), "", "", true),
+		// Require deployments to succeed before merging
+		// Lock branch
+		NewRepositorySetting("Do not allow bypassing the above settings", utils.YesNo(rule.IsAdminEnforced), "", "", true),
+		// Restrict who can push to matching branches
+
+		NewRepositorySetting("Allow force pushes", utils.YesNo(rule.AllowsForcePushes), "", "", true),
+		NewRepositorySetting("Allow deletions", utils.YesNo(rule.AllowsDeletions), "", "", true),
+	)
 
 	return NewRepositorySettingsTab("Default Branch", repositorySettings)
 }
