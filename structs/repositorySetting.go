@@ -72,6 +72,7 @@ func buildPullRequestSettings(ornq RepositoryQuery) RepositorySettingsTab {
 		NewRepositorySetting("Allow rebase merging", utils.YesNo(ornq.RebaseMergeAllowed), "", "", true),
 		NewRepositorySetting("Allow auto-merge", utils.YesNo(ornq.AutoMergeAllowed), "", "", true),
 		NewRepositorySetting("Automatically delete head branches", utils.YesNo(ornq.DeleteBranchOnMerge), "", "", true),
+		NewRepositorySetting("Open pull requests", fmt.Sprint(ornq.PullRequests.TotalCount), "", "", true),
 	)
 
 	return NewRepositorySettingsTab("Pull Requests", repositorySettings)
@@ -88,20 +89,18 @@ func buildDefaultBranchSettings(ornq RepositoryQuery) RepositorySettingsTab {
 		NewRepositorySetting("Number of approvals required", fmt.Sprint(rule.RequiredApprovingReviewCount), "", "", true),
 		NewRepositorySetting("Dismiss stale requests", utils.YesNo(rule.DismissesStaleReviews), "", "", true),
 		NewRepositorySetting("Require review from Code Owners", utils.YesNo(rule.RequiresCodeOwnerReviews), "", "", true),
-		// Restrict who can dismiss pull request reviews
+		NewRepositorySetting("Restrict who can dismiss pull request reviews", utils.YesNo(rule.RestrictsReviewDismissals), "", "", true),
+		NewRepositorySetting("Require approval of the most recent reviewable push", utils.YesNo(rule.RequireLastPushApproval), "", "", true),
 		// Allow specified actors to bypass required pull requests
-		// Require approval of the most recent reviewable push
 
-		// Require status checks to pass before merging
 		NewRepositorySetting("Require status checks to pass before merging", utils.YesNo(rule.RequiresStatusChecks), "", "", true),
-		// Require conversation resolution before merging
+		NewRepositorySetting("Require conversation resolution before merging", utils.YesNo(rule.RequiresConversationResolution), "", "", true),
 		NewRepositorySetting("Requires signed commits", utils.YesNo(rule.RequiresCommitSignatures), "", "", true),
 		NewRepositorySetting("Require linear history", utils.YesNo(rule.RequiresLinearHistory), "", "", true),
-		// NewRepositorySetting("Require deployments to succeed before merging", utils.YesNo(rule.), "", "", true),
-		// Require deployments to succeed before merging
-		// Lock branch
+		NewRepositorySetting("Require deployments to succeed before merging", utils.YesNo(rule.RequiresDeployments), "", "", true),
+		NewRepositorySetting("Lock branch", utils.YesNo(rule.LockBranch), "", "", true),
 		NewRepositorySetting("Do not allow bypassing the above settings", utils.YesNo(rule.IsAdminEnforced), "", "", true),
-		// Restrict who can push to matching branches
+		NewRepositorySetting("Restrict who can push to matching branches", utils.YesNo(rule.RestrictsPushes), "", "", true),
 
 		NewRepositorySetting("Allow force pushes", utils.YesNo(rule.AllowsForcePushes), "", "", true),
 		NewRepositorySetting("Allow deletions", utils.YesNo(rule.AllowsDeletions), "", "", true),
