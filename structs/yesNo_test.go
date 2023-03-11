@@ -1,4 +1,4 @@
-package utils
+package structs
 
 import (
 	"testing"
@@ -13,7 +13,6 @@ func TestYesNo(t *testing.T) {
 		args args
 		want string
 	}{
-		// TODO: Add test cases.
 		{"Yes", args{true}, "✔️"},
 		{"No", args{false}, "❌"},
 	}

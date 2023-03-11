@@ -1,4 +1,4 @@
-package utils
+package structs
 
 func YesNo(b bool) string {
 	if b {

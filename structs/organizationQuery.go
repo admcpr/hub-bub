@@ -24,6 +24,7 @@ type RepositoryQuery struct {
 	AutoMergeAllowed              bool
 	DeleteBranchOnMerge           bool
 	RebaseMergeAllowed            bool
+	MergeCommitAllowed            bool
 	HasDiscussionsEnabled         bool
 	HasIssuesEnabled              bool
 	HasWikiEnabled                bool
@@ -46,6 +47,9 @@ type RepositoryQuery struct {
 	VulnerabilityAlerts struct {
 		TotalCount int
 	} `graphql:"vulnerabilityAlerts"`
+	PullRequests struct {
+		TotalCount int
+	} `graphql:"pullRequests(states: OPEN)"`
 }
 
 type BranchProtectionRuleQuery struct {
@@ -61,4 +65,9 @@ type BranchProtectionRuleQuery struct {
 	RequiresLinearHistory          bool
 	RequiresStatusChecks           bool
 	RequiresStrictStatusChecks     bool
+	RequiresDeployments            bool
+	LockBranch                     bool
+	RestrictsPushes                bool
+	RestrictsReviewDismissals      bool
+	RequireLastPushApproval        bool
 }

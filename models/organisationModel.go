@@ -34,7 +34,13 @@ func (m *OrganisationModel) getSelectedRepo() structs.RepositoryQuery {
 	return m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node
 }
 
-func (m *OrganisationModel) init() {
+func (m *OrganisationModel) init(width, height int) {
+	m.width = width
+	m.height = height
+	m.repoModel.width = m.panelWidth()
+	m.repoModel.height = m.height
+	m.loaded = true
+
 	m.repoList = list.New(
 		[]list.Item{},
 		list.NewDefaultDelegate(),
@@ -51,18 +57,13 @@ func (m OrganisationModel) Init() tea.Cmd {
 
 func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
+	// var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
 
 	case tea.WindowSizeMsg:
-		m.height = msg.Height
-		m.width = msg.Width
-		m.repoModel.width = m.panelWidth()
-		m.repoModel.height = m.height
-
 		if !m.loaded {
-			m.init()
-			m.loaded = true
+			m.init(msg.Width, msg.Height)
 		}
 		return m, nil
 
@@ -81,13 +82,15 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			case tea.KeyRight:
 				m.repoModel.NextTab()
+				_, cmd = m.repoModel.Update(msg)
 			case tea.KeyLeft:
 				m.repoModel.PreviousTab()
+				_, cmd = m.repoModel.Update(msg)
 			}
-			_, cmd = m.repoModel.Update(msg)
 		} else {
 			switch msg.Type {
 			case tea.KeyDown, tea.KeyUp:
+				m.repoList, cmd = m.repoList.Update(msg)
 				m.repoModel.SelectRepo(m.getSelectedRepo(), m.panelWidth(), m.height)
 			case tea.KeyEnter:
 				m.tabsHaveFocus = true
@@ -95,18 +98,16 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case tea.KeyEsc:
 				return MainModel[UserModelName], nil
 			}
-			switch msg.String() {
-			case "ctrl+c", "q":
-				return m, tea.Quit
-			}
-			m.repoList, cmd = m.repoList.Update(msg)
+		}
+		switch msg.String() {
+		case "ctrl+c", "q":
+			return m, tea.Quit
 		}
 	}
 
 	return m, cmd
 }
 
-// View implements tea.Model
 func (m OrganisationModel) View() string {
 	var repoList = appStyle.Width(m.panelWidth() - 4).Render(m.repoList.View())
 	var settings = appStyle.Width(m.panelWidth()).Render(m.repoModel.View())
