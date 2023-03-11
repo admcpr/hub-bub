@@ -1,6 +1,6 @@
 module github.com/admcpr/hub-bub
 
-go 1.19
+go 1.20
 
 require (
 	github.com/charmbracelet/bubbles v0.15.0
