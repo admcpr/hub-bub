@@ -2,8 +2,6 @@ package structs
 
 import (
 	"fmt"
-
-	"github.com/admcpr/hub-bub/utils"
 )
 
 type RepositorySetting struct {
@@ -48,17 +46,17 @@ func buildOverviewSettings(ornq RepositoryQuery) RepositorySettingsTab {
 	var repositorySettings []RepositorySetting
 
 	repositorySettings = append(repositorySettings,
-		NewRepositorySetting("Private", utils.YesNo(ornq.IsPrivate), "", "", true),
-		NewRepositorySetting("Template", utils.YesNo(ornq.IsTemplate), "", "", true),
-		NewRepositorySetting("Archived", utils.YesNo(ornq.IsArchived), "", "", true),
-		NewRepositorySetting("Disabled", utils.YesNo(ornq.IsDisabled), "", "", true),
-		NewRepositorySetting("Fork", utils.YesNo(ornq.IsFork), "", "", true),
+		NewRepositorySetting("Private", YesNo(ornq.IsPrivate), "", "", true),
+		NewRepositorySetting("Template", YesNo(ornq.IsTemplate), "", "", true),
+		NewRepositorySetting("Archived", YesNo(ornq.IsArchived), "", "", true),
+		NewRepositorySetting("Disabled", YesNo(ornq.IsDisabled), "", "", true),
+		NewRepositorySetting("Fork", YesNo(ornq.IsFork), "", "", true),
 		NewRepositorySetting("Last updated", ornq.UpdatedAt.Format("2006/01/02"), "", "", true),
 		NewRepositorySetting("Stars", fmt.Sprint(ornq.StargazerCount), "", "", true),
-		NewRepositorySetting("Wiki", utils.YesNo(ornq.HasWikiEnabled), "", "", true),
-		NewRepositorySetting("Issues", utils.YesNo(ornq.HasIssuesEnabled), "", "", true),
-		NewRepositorySetting("Projects", utils.YesNo(ornq.HasProjectsEnabled), "", "", true),
-		NewRepositorySetting("Discussions", utils.YesNo(ornq.HasDiscussionsEnabled), "", "", true))
+		NewRepositorySetting("Wiki", YesNo(ornq.HasWikiEnabled), "", "", true),
+		NewRepositorySetting("Issues", YesNo(ornq.HasIssuesEnabled), "", "", true),
+		NewRepositorySetting("Projects", YesNo(ornq.HasProjectsEnabled), "", "", true),
+		NewRepositorySetting("Discussions", YesNo(ornq.HasDiscussionsEnabled), "", "", true))
 
 	return NewRepositorySettingsTab("Overview", repositorySettings)
 }
@@ -67,11 +65,11 @@ func buildPullRequestSettings(ornq RepositoryQuery) RepositorySettingsTab {
 	var repositorySettings []RepositorySetting
 
 	repositorySettings = append(repositorySettings,
-		NewRepositorySetting("Allow merge commits", utils.YesNo(ornq.MergeCommitAllowed), "", "", true),
-		NewRepositorySetting("Allow squash merging", utils.YesNo(ornq.SquashMergeAllowed), "", "", true),
-		NewRepositorySetting("Allow rebase merging", utils.YesNo(ornq.RebaseMergeAllowed), "", "", true),
-		NewRepositorySetting("Allow auto-merge", utils.YesNo(ornq.AutoMergeAllowed), "", "", true),
-		NewRepositorySetting("Automatically delete head branches", utils.YesNo(ornq.DeleteBranchOnMerge), "", "", true),
+		NewRepositorySetting("Allow merge commits", YesNo(ornq.MergeCommitAllowed), "", "", true),
+		NewRepositorySetting("Allow squash merging", YesNo(ornq.SquashMergeAllowed), "", "", true),
+		NewRepositorySetting("Allow rebase merging", YesNo(ornq.RebaseMergeAllowed), "", "", true),
+		NewRepositorySetting("Allow auto-merge", YesNo(ornq.AutoMergeAllowed), "", "", true),
+		NewRepositorySetting("Automatically delete head branches", YesNo(ornq.DeleteBranchOnMerge), "", "", true),
 		NewRepositorySetting("Open pull requests", fmt.Sprint(ornq.PullRequests.TotalCount), "", "", true),
 	)
 
@@ -85,25 +83,25 @@ func buildDefaultBranchSettings(ornq RepositoryQuery) RepositorySettingsTab {
 
 	repositorySettings = append(repositorySettings,
 		NewRepositorySetting("Name", ornq.DefaultBranchRef.Name, "", "", true),
-		NewRepositorySetting("Require approving reviews", utils.YesNo(rule.RequiresApprovingReviews), "", "", true),
+		NewRepositorySetting("Require approving reviews", YesNo(rule.RequiresApprovingReviews), "", "", true),
 		NewRepositorySetting("Number of approvals required", fmt.Sprint(rule.RequiredApprovingReviewCount), "", "", true),
-		NewRepositorySetting("Dismiss stale requests", utils.YesNo(rule.DismissesStaleReviews), "", "", true),
-		NewRepositorySetting("Require review from Code Owners", utils.YesNo(rule.RequiresCodeOwnerReviews), "", "", true),
-		NewRepositorySetting("Restrict who can dismiss pull request reviews", utils.YesNo(rule.RestrictsReviewDismissals), "", "", true),
-		NewRepositorySetting("Require approval of the most recent reviewable push", utils.YesNo(rule.RequireLastPushApproval), "", "", true),
+		NewRepositorySetting("Dismiss stale requests", YesNo(rule.DismissesStaleReviews), "", "", true),
+		NewRepositorySetting("Require review from Code Owners", YesNo(rule.RequiresCodeOwnerReviews), "", "", true),
+		NewRepositorySetting("Restrict who can dismiss pull request reviews", YesNo(rule.RestrictsReviewDismissals), "", "", true),
+		NewRepositorySetting("Require approval of the most recent reviewable push", YesNo(rule.RequireLastPushApproval), "", "", true),
 		// Allow specified actors to bypass required pull requests
 
-		NewRepositorySetting("Require status checks to pass before merging", utils.YesNo(rule.RequiresStatusChecks), "", "", true),
-		NewRepositorySetting("Require conversation resolution before merging", utils.YesNo(rule.RequiresConversationResolution), "", "", true),
-		NewRepositorySetting("Requires signed commits", utils.YesNo(rule.RequiresCommitSignatures), "", "", true),
-		NewRepositorySetting("Require linear history", utils.YesNo(rule.RequiresLinearHistory), "", "", true),
-		NewRepositorySetting("Require deployments to succeed before merging", utils.YesNo(rule.RequiresDeployments), "", "", true),
-		NewRepositorySetting("Lock branch", utils.YesNo(rule.LockBranch), "", "", true),
-		NewRepositorySetting("Do not allow bypassing the above settings", utils.YesNo(rule.IsAdminEnforced), "", "", true),
-		NewRepositorySetting("Restrict who can push to matching branches", utils.YesNo(rule.RestrictsPushes), "", "", true),
+		NewRepositorySetting("Require status checks to pass before merging", YesNo(rule.RequiresStatusChecks), "", "", true),
+		NewRepositorySetting("Require conversation resolution before merging", YesNo(rule.RequiresConversationResolution), "", "", true),
+		NewRepositorySetting("Requires signed commits", YesNo(rule.RequiresCommitSignatures), "", "", true),
+		NewRepositorySetting("Require linear history", YesNo(rule.RequiresLinearHistory), "", "", true),
+		NewRepositorySetting("Require deployments to succeed before merging", YesNo(rule.RequiresDeployments), "", "", true),
+		NewRepositorySetting("Lock branch", YesNo(rule.LockBranch), "", "", true),
+		NewRepositorySetting("Do not allow bypassing the above settings", YesNo(rule.IsAdminEnforced), "", "", true),
+		NewRepositorySetting("Restrict who can push to matching branches", YesNo(rule.RestrictsPushes), "", "", true),
 
-		NewRepositorySetting("Allow force pushes", utils.YesNo(rule.AllowsForcePushes), "", "", true),
-		NewRepositorySetting("Allow deletions", utils.YesNo(rule.AllowsDeletions), "", "", true),
+		NewRepositorySetting("Allow force pushes", YesNo(rule.AllowsForcePushes), "", "", true),
+		NewRepositorySetting("Allow deletions", YesNo(rule.AllowsDeletions), "", "", true),
 	)
 
 	return NewRepositorySettingsTab("Default Branch", repositorySettings)
@@ -113,7 +111,7 @@ func buildSecuritySettings(ornq RepositoryQuery) RepositorySettingsTab {
 	var repositorySettings []RepositorySetting
 
 	repositorySettings = append(repositorySettings,
-		NewRepositorySetting("Vulnerability alerts enabled", utils.YesNo(ornq.HasVulnerabilityAlertsEnabled), "", "", true),
+		NewRepositorySetting("Vulnerability alerts enabled", YesNo(ornq.HasVulnerabilityAlertsEnabled), "", "", true),
 		NewRepositorySetting("Vulnerability alert count", fmt.Sprint(ornq.VulnerabilityAlerts.TotalCount), "", "", true),
 	)
 
