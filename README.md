@@ -4,7 +4,7 @@
 ![Release workflow](https://github.com/admcpr/hub-bub/actions/workflows/release.yml/badge.svg)
 [![Go Report Card](https://goreportcard.com/badge/github.com/admcpr/hub-bub)](https://goreportcard.com/report/github.com/admcpr/hub-bub)
 
-![Hub-bub](hub-bub.png)
+![Hub-bub](hub-bub-small.png)
 A cli tool for investigating github repository configuration.
 
 Built using [bubbletea](https://github.com/charmbracelet/bubbletea).
