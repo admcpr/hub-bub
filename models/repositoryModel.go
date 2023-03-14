@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/admcpr/hub-bub/structs"
+	"hub-bub/structs"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"

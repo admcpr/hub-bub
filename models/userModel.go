@@ -3,8 +3,8 @@ package models
 import (
 	"fmt"
 
-	"github.com/admcpr/hub-bub/messages"
-	"github.com/admcpr/hub-bub/structs"
+	"hub-bub/messages"
+	"hub-bub/structs"
 	"github.com/cli/go-gh"
 
 	"github.com/charmbracelet/bubbles/list"

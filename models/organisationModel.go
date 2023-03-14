@@ -3,8 +3,8 @@ package models
 import (
 	"log"
 
-	"github.com/admcpr/hub-bub/messages"
-	"github.com/admcpr/hub-bub/structs"
+	"hub-bub/messages"
+	"hub-bub/structs"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
