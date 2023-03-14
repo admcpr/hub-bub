@@ -26,13 +26,13 @@ jobs:
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v3
 
-    # - name: Test
-    #   run: go test -coverprofile=out -v ./...
+    - name: Test
+      run: go test -coverprofile=c.out ./...
     
-    - name: Test & publish code coverage
+    - name: Upload coverage
       uses: paambaati/codeclimate-action@v3.2.0
+      continue-on-error: true
       env:
         CC_TEST_REPORTER_ID: 1685ea3c3c891d14f0b7609a8e26224344a1ccd8745986394bdebcf16393cd11
       with:
-        coverageCommand: go test -coverprofile=c.out -v ./...
         debug: true
