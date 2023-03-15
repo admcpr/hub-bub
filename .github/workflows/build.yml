@@ -10,7 +10,8 @@ jobs:
   build_matrix:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest]
+        # os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
@@ -32,6 +33,7 @@ jobs:
     - name: Upload coverage
       uses: paambaati/codeclimate-action@v3.2.0
       continue-on-error: true
+      prefix: hub-bub
       env:
         CC_TEST_REPORTER_ID: 1685ea3c3c891d14f0b7609a8e26224344a1ccd8745986394bdebcf16393cd11
       with:
