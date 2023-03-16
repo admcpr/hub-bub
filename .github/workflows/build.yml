@@ -27,4 +27,14 @@ jobs:
       uses: golangci/golangci-lint-action@v3
 
     - name: Test
-      run: go test -v ./...
+      run: go test -coverprofile c.out ./...
+    
+    - name: Upload coverage
+      uses: paambaati/codeclimate-action@v3.2.0
+      if: matrix.os == 'ubuntu-latest'
+      continue-on-error: true
+      env:
+        CC_TEST_REPORTER_ID: 1685ea3c3c891d14f0b7609a8e26224344a1ccd8745986394bdebcf16393cd11
+      with:
+        prefix: hub-bub
+        debug: true

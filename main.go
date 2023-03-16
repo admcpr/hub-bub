@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/admcpr/hub-bub/models"
+	"hub-bub/models"
 	tea "github.com/charmbracelet/bubbletea"
 )
 

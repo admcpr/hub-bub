@@ -1,4 +1,4 @@
-module github.com/admcpr/hub-bub
+module hub-bub
 
 go 1.20
 

@@ -1,7 +1,7 @@
 package messages
 
 import (
-	"github.com/admcpr/hub-bub/structs"
+	"hub-bub/structs"
 )
 
 type RepoListMsg struct {

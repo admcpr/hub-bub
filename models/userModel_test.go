@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	messages "github.com/admcpr/hub-bub/messages"
-	structs "github.com/admcpr/hub-bub/structs"
+	messages "hub-bub/messages"
+	structs "hub-bub/structs"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
