@@ -27,7 +27,7 @@ jobs:
       uses: golangci/golangci-lint-action@v3
 
     - name: Test
-      run: go test -coverprofile=c.out ./...
+      run: go test -coverprofile=coverage.out ./...
     
     - name: Upload coverage
       uses: paambaati/codeclimate-action@v3.2.0
