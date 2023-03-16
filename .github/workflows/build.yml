@@ -33,8 +33,8 @@ jobs:
     - name: Upload coverage
       uses: paambaati/codeclimate-action@v3.2.0
       continue-on-error: true
-      prefix: hub-bub
       env:
         CC_TEST_REPORTER_ID: 1685ea3c3c891d14f0b7609a8e26224344a1ccd8745986394bdebcf16393cd11
       with:
+        prefix: hub-bub
         debug: true
