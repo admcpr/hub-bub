@@ -7,19 +7,19 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func TestOrganisationModel_Update(t *testing.T) {
+func TestOrgModel_Update(t *testing.T) {
 	type args struct {
 		msg tea.Msg
 	}
 	tests := []struct {
 		name      string
-		m         OrganisationModel
+		m         OrgModel
 		args      args
 		wantModel tea.Model
 		wantCmd   tea.Cmd
 	}{
 		// TODO: Add more test cases.
-		{"Quit KeyMsg", OrganisationModel{}, args{tea.KeyMsg{Type: tea.KeyCtrlC}}, OrganisationModel{}, tea.Quit},
+		{"Quit KeyMsg", OrgModel{}, args{tea.KeyMsg{Type: tea.KeyCtrlC}}, OrgModel{}, tea.Quit},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

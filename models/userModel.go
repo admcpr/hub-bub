@@ -5,6 +5,7 @@ import (
 
 	"hub-bub/messages"
 	"hub-bub/structs"
+
 	"github.com/cli/go-gh"
 
 	"github.com/charmbracelet/bubbles/list"
@@ -69,12 +70,7 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter", " ":
 			MainModel[UserModelName] = m
 			item := m.list.SelectedItem()
-			orgModel := &OrganisationModel{
-				Title:  item.(structs.ListItem).Title(),
-				Url:    item.(structs.ListItem).Description(),
-				width:  m.width,
-				height: m.height,
-			}
+			orgModel := NewOrgModel(item.(structs.ListItem).Title(), m.width, m.height)
 
 			MainModel[OrganisationModelName] = orgModel
 

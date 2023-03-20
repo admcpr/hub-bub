@@ -2,12 +2,13 @@ package models
 
 import (
 	"hub-bub/structs"
+
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
-type RepositoryModel struct {
+type RepoModel struct {
 	repositorySettingsTabs []structs.RepositorySettingsTab
 
 	settingsTable table.Model
@@ -18,34 +19,34 @@ type RepositoryModel struct {
 	height    int
 }
 
-func NewRepositoryModel(width, height int) RepositoryModel {
-	return RepositoryModel{
+func NewRepoModel(width, height int) RepoModel {
+	return RepoModel{
 		repositorySettingsTabs: []structs.RepositorySettingsTab{},
 		width:                  width,
 		height:                 height,
 	}
 }
 
-func (m RepositoryModel) Init() tea.Cmd {
+func (m RepoModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m *RepositoryModel) SelectRepo(RepositoryQuery structs.RepositoryQuery, width, height int) {
+func (m *RepoModel) SelectRepo(RepositoryQuery structs.RepositoryQuery, width, height int) {
 	m.repositorySettingsTabs = structs.BuildRepositorySettings(RepositoryQuery)
 
 	m.width = width
 	m.height = height
 }
 
-func (m *RepositoryModel) NextTab() {
+func (m *RepoModel) NextTab() {
 	m.activeTab = min(m.activeTab+1, len(m.repositorySettingsTabs)-1)
 }
 
-func (m *RepositoryModel) PreviousTab() {
+func (m *RepoModel) PreviousTab() {
 	m.activeTab = max(m.activeTab-1, 0)
 }
 
-func (m RepositoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m RepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg.(type) {
@@ -59,7 +60,7 @@ func (m RepositoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m RepositoryModel) View() string {
+func (m RepoModel) View() string {
 	if m.repositorySettingsTabs == nil || len(m.repositorySettingsTabs) == 0 {
 		return ""
 	}
@@ -72,7 +73,7 @@ func (m RepositoryModel) View() string {
 	return lipgloss.JoinVertical(lipgloss.Left, tabs, settings)
 }
 
-func (m *RepositoryModel) buildSettingsTable() {
+func (m *RepoModel) buildSettingsTable() {
 	var activeSettings = m.repositorySettingsTabs[m.activeTab]
 
 	columns := []table.Column{{Title: "", Width: 40}, {Title: "", Width: 11}}
@@ -87,7 +88,7 @@ func (m *RepositoryModel) buildSettingsTable() {
 		table.WithRows(rows))
 }
 
-func (m RepositoryModel) RenderTabs() string {
+func (m RepoModel) RenderTabs() string {
 	Tabs := []string{}
 	for _, t := range m.repositorySettingsTabs {
 		Tabs = append(Tabs, t.Name)

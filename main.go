@@ -5,11 +5,12 @@ import (
 	"os"
 
 	"hub-bub/models"
+
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 func main() {
-	models.MainModel = []tea.Model{&models.UserModel{}, &models.OrganisationModel{}}
+	models.MainModel = []tea.Model{&models.UserModel{}, &models.OrgModel{}}
 
 	p := tea.NewProgram(models.MainModel[models.UserModelName])
 	if _, err := p.Run(); err != nil {
