@@ -39,6 +39,14 @@ func NewOrgModel(title string, width, height int) OrgModel {
 	}
 }
 
+func (m *OrgModel) helpView() string {
+	if m.tabsHaveFocus {
+		return m.repoModel.help.View(m.repoModel.keys)
+	}
+
+	return m.help.View(m.keys)
+}
+
 func (m *OrgModel) panelWidth() int {
 	return m.width / 2
 }
@@ -121,7 +129,7 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m OrgModel) View() string {
 	var repoList = appStyle.Width(m.panelWidth() - 4).Render(m.repoList.View())
 	var settings = appStyle.Width(m.panelWidth()).Render(m.repoModel.View())
-	help := m.help.View(m.keys)
+	help := m.helpView()
 	var rightPanel = lipgloss.JoinVertical(lipgloss.Center, settings, help)
 
 	var views = []string{repoList, rightPanel}

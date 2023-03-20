@@ -42,15 +42,11 @@ func NewRepoKeyMap() repoKeyMap {
 		),
 		Left: key.NewBinding(
 			key.WithKeys("left", "h"),
-			key.WithHelp("←/h", "move left"),
+			key.WithHelp("←/h", "previous tab"),
 		),
 		Right: key.NewBinding(
 			key.WithKeys("right", "l"),
-			key.WithHelp("→/l", "move right"),
-		),
-		Enter: key.NewBinding(
-			key.WithKeys("enter"),
-			key.WithHelp("enter", "select"),
+			key.WithHelp("→/l", "next tab"),
 		),
 		Filter: key.NewBinding(
 			key.WithKeys("/"),
@@ -61,7 +57,7 @@ func NewRepoKeyMap() repoKeyMap {
 			key.WithHelp("esc", "back"),
 		),
 		Quit: key.NewBinding(
-			key.WithKeys("q", "esc", "ctrl+c"),
+			key.WithKeys("q"),
 			key.WithHelp("q", "quit"),
 		),
 	}
