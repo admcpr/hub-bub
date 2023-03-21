@@ -49,23 +49,12 @@ func (m *OrgModel) helpView() string {
 	return m.help.View(m.keys)
 }
 
-func (m *OrgModel) panelWidth() int {
-	return m.width / 2
-}
-
 func (m *OrgModel) getSelectedRepo() structs.RepositoryQuery {
 	return m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node
 }
 
 func (m *OrgModel) init(width, height int) {
 	m.loaded = true
-
-	// m.repoList = list.New(
-	// 	[]list.Item{},
-	// 	list.NewDefaultDelegate(),
-	// 	m.panelWidth(),
-	// 	m.height,
-	// )
 }
 
 func (m OrgModel) Init() tea.Cmd {
@@ -87,7 +76,7 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case messages.RepoListMsg:
 		m.repoList = buildRepoListModel(msg.OrganizationQuery, m.width, m.height)
 		m.RepoQuery = msg.OrganizationQuery
-		m.repoModel.SelectRepo(m.getSelectedRepo(), m.panelWidth(), m.height)
+		m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
 		return m, nil
 
 	case tea.KeyMsg:
@@ -107,10 +96,10 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch msg.Type {
 			case tea.KeyDown, tea.KeyUp:
 				m.repoList, cmd = m.repoList.Update(msg)
-				m.repoModel.SelectRepo(m.getSelectedRepo(), m.panelWidth(), m.height)
+				m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
 			case tea.KeyEnter:
 				m.tabsHaveFocus = true
-				m.repoModel.SelectRepo(m.getSelectedRepo(), m.panelWidth(), m.height)
+				m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
 			case tea.KeyEsc:
 				return MainModel[UserModelName], nil
 			}
@@ -125,8 +114,8 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m OrgModel) View() string {
-	var repoList = appStyle.Width(m.panelWidth() - 4).Render(m.repoList.View())
-	var settings = appStyle.Width(m.panelWidth()).Render(m.repoModel.View())
+	var repoList = appStyle.Width(half(m.width)).Render(m.repoList.View())
+	var settings = appStyle.Width(half(m.width)).Render(m.repoModel.View())
 	help := m.helpView()
 	var rightPanel = lipgloss.JoinVertical(lipgloss.Center, settings, help)
 
