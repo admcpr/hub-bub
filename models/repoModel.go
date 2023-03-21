@@ -2,15 +2,20 @@ package models
 
 import (
 	"hub-bub/structs"
+
+	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
-type RepositoryModel struct {
-	repositorySettingsTabs []structs.RepositorySettingsTab
+type RepoModel struct {
+	repoSettingsTabs []structs.RepositorySettingsTab
 
 	settingsTable table.Model
+
+	help help.Model
+	keys repoKeyMap
 
 	activeTab int
 	loaded    bool
@@ -18,34 +23,36 @@ type RepositoryModel struct {
 	height    int
 }
 
-func NewRepositoryModel(width, height int) RepositoryModel {
-	return RepositoryModel{
-		repositorySettingsTabs: []structs.RepositorySettingsTab{},
-		width:                  width,
-		height:                 height,
+func NewRepoModel(width, height int) RepoModel {
+	return RepoModel{
+		repoSettingsTabs: []structs.RepositorySettingsTab{},
+		width:            width,
+		height:           height,
+		help:             help.New(),
+		keys:             NewRepoKeyMap(),
 	}
 }
 
-func (m RepositoryModel) Init() tea.Cmd {
+func (m RepoModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m *RepositoryModel) SelectRepo(RepositoryQuery structs.RepositoryQuery, width, height int) {
-	m.repositorySettingsTabs = structs.BuildRepositorySettings(RepositoryQuery)
+func (m *RepoModel) SelectRepo(RepositoryQuery structs.RepositoryQuery, width, height int) {
+	m.repoSettingsTabs = structs.BuildRepoSettings(RepositoryQuery)
 
 	m.width = width
 	m.height = height
 }
 
-func (m *RepositoryModel) NextTab() {
-	m.activeTab = min(m.activeTab+1, len(m.repositorySettingsTabs)-1)
+func (m *RepoModel) NextTab() {
+	m.activeTab = min(m.activeTab+1, len(m.repoSettingsTabs)-1)
 }
 
-func (m *RepositoryModel) PreviousTab() {
+func (m *RepoModel) PreviousTab() {
 	m.activeTab = max(m.activeTab-1, 0)
 }
 
-func (m RepositoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m RepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg.(type) {
@@ -59,23 +66,23 @@ func (m RepositoryModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m RepositoryModel) View() string {
-	if m.repositorySettingsTabs == nil || len(m.repositorySettingsTabs) == 0 {
+func (m RepoModel) View() string {
+	if m.repoSettingsTabs == nil || len(m.repoSettingsTabs) == 0 {
 		return ""
 	}
 
 	m.buildSettingsTable()
 
 	var tabs = m.RenderTabs()
-	var settings = settingsStyle.Padding(0).Width(m.width - 6).Render(m.settingsTable.View())
+	var settings = settingsStyle.Padding(0).Width(m.width - 2).Render(m.settingsTable.View())
 
 	return lipgloss.JoinVertical(lipgloss.Left, tabs, settings)
 }
 
-func (m *RepositoryModel) buildSettingsTable() {
-	var activeSettings = m.repositorySettingsTabs[m.activeTab]
+func (m *RepoModel) buildSettingsTable() {
+	var activeSettings = m.repoSettingsTabs[m.activeTab]
 
-	columns := []table.Column{{Title: "", Width: 40}, {Title: "", Width: 11}}
+	columns := []table.Column{{Title: "", Width: 50}, {Title: "", Width: 11}}
 
 	rows := make([]table.Row, len(activeSettings.Settings))
 	for i, setting := range activeSettings.Settings {
@@ -87,9 +94,9 @@ func (m *RepositoryModel) buildSettingsTable() {
 		table.WithRows(rows))
 }
 
-func (m RepositoryModel) RenderTabs() string {
+func (m RepoModel) RenderTabs() string {
 	Tabs := []string{}
-	for _, t := range m.repositorySettingsTabs {
+	for _, t := range m.repoSettingsTabs {
 		Tabs = append(Tabs, t.Name)
 	}
 
@@ -126,18 +133,4 @@ func (m RepositoryModel) RenderTabs() string {
 	row := lipgloss.JoinHorizontal(lipgloss.Top, renderedTabs...)
 
 	return row
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }

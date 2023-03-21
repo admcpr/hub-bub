@@ -5,6 +5,8 @@ import (
 
 	"hub-bub/messages"
 	"hub-bub/structs"
+
+	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -12,13 +14,14 @@ import (
 	graphql "github.com/cli/shurcooL-graphql"
 )
 
-type OrganisationModel struct {
+type OrgModel struct {
 	Title     string
-	Url       string
 	RepoQuery structs.OrganizationQuery
 
 	repoList  list.Model
-	repoModel RepositoryModel
+	repoModel RepoModel
+	help      help.Model
+	keys      orgKeyMap
 
 	loaded        bool
 	width         int
@@ -26,36 +29,39 @@ type OrganisationModel struct {
 	tabsHaveFocus bool
 }
 
-func (m *OrganisationModel) panelWidth() int {
-	return m.width / 2
+func NewOrgModel(title string, width, height int) OrgModel {
+	return OrgModel{
+		Title:     title,
+		width:     width,
+		height:    height,
+		help:      help.New(),
+		keys:      NewKeyMap(),
+		repoModel: NewRepoModel(width/2, height),
+		repoList:  list.New([]list.Item{}, list.NewDefaultDelegate(), width/2, height),
+	}
 }
 
-func (m *OrganisationModel) getSelectedRepo() structs.RepositoryQuery {
+func (m *OrgModel) helpView() string {
+	if m.tabsHaveFocus {
+		return m.repoModel.help.View(m.repoModel.keys)
+	}
+
+	return m.help.View(m.keys)
+}
+
+func (m *OrgModel) getSelectedRepo() structs.RepositoryQuery {
 	return m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node
 }
 
-func (m *OrganisationModel) init(width, height int) {
-	m.width = width
-	m.height = height
-	m.repoModel.width = m.panelWidth()
-	m.repoModel.height = m.height
+func (m *OrgModel) init(width, height int) {
 	m.loaded = true
-
-	m.repoList = list.New(
-		[]list.Item{},
-		list.NewDefaultDelegate(),
-		m.panelWidth(),
-		m.height,
-	)
-
-	m.repoModel = NewRepositoryModel(m.panelWidth(), m.height)
 }
 
-func (m OrganisationModel) Init() tea.Cmd {
+func (m OrgModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	// var cmds []tea.Cmd
 
@@ -70,12 +76,11 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case messages.RepoListMsg:
 		m.repoList = buildRepoListModel(msg.OrganizationQuery, m.width, m.height)
 		m.RepoQuery = msg.OrganizationQuery
-		m.repoModel.SelectRepo(m.getSelectedRepo(), m.panelWidth(), m.height)
+		m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
 		return m, nil
 
 	case tea.KeyMsg:
 		if m.tabsHaveFocus {
-			// Pass messages to repository model
 			switch msg.Type {
 			case tea.KeyEsc:
 				m.tabsHaveFocus = false
@@ -91,10 +96,10 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch msg.Type {
 			case tea.KeyDown, tea.KeyUp:
 				m.repoList, cmd = m.repoList.Update(msg)
-				m.repoModel.SelectRepo(m.getSelectedRepo(), m.panelWidth(), m.height)
+				m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
 			case tea.KeyEnter:
 				m.tabsHaveFocus = true
-				m.repoModel.SelectRepo(m.getSelectedRepo(), m.panelWidth(), m.height)
+				m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
 			case tea.KeyEsc:
 				return MainModel[UserModelName], nil
 			}
@@ -108,16 +113,18 @@ func (m OrganisationModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m OrganisationModel) View() string {
-	var repoList = appStyle.Width(m.panelWidth() - 4).Render(m.repoList.View())
-	var settings = appStyle.Width(m.panelWidth()).Render(m.repoModel.View())
+func (m OrgModel) View() string {
+	var repoList = appStyle.Width(half(m.width)).Render(m.repoList.View())
+	var settings = appStyle.Width(half(m.width)).Render(m.repoModel.View())
+	help := m.helpView()
+	var rightPanel = lipgloss.JoinVertical(lipgloss.Center, settings, help)
 
-	var views = []string{repoList, settings}
+	var views = []string{repoList, rightPanel}
 
 	return lipgloss.JoinHorizontal(lipgloss.Top, views...)
 }
 
-func (m OrganisationModel) GetRepositories() tea.Msg {
+func (m OrgModel) GetRepositories() tea.Msg {
 	client, err := gh.GQLClient(nil)
 	if err != nil {
 		return messages.AuthenticationErrorMsg{Err: err}
