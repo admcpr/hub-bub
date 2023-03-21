@@ -31,11 +31,13 @@ type OrgModel struct {
 
 func NewOrgModel(title string, width, height int) OrgModel {
 	return OrgModel{
-		Title:  title,
-		width:  width,
-		height: height,
-		help:   help.New(),
-		keys:   NewKeyMap(),
+		Title:     title,
+		width:     width,
+		height:    height,
+		help:      help.New(),
+		keys:      NewKeyMap(),
+		repoModel: NewRepoModel(width/2, height),
+		repoList:  list.New([]list.Item{}, list.NewDefaultDelegate(), width/2, height),
 	}
 }
 
@@ -56,18 +58,14 @@ func (m *OrgModel) getSelectedRepo() structs.RepositoryQuery {
 }
 
 func (m *OrgModel) init(width, height int) {
-	m.repoModel.width = m.panelWidth()
-	m.repoModel.height = m.height
 	m.loaded = true
 
-	m.repoList = list.New(
-		[]list.Item{},
-		list.NewDefaultDelegate(),
-		m.panelWidth(),
-		m.height,
-	)
-
-	m.repoModel = NewRepoModel(m.panelWidth(), m.height)
+	// m.repoList = list.New(
+	// 	[]list.Item{},
+	// 	list.NewDefaultDelegate(),
+	// 	m.panelWidth(),
+	// 	m.height,
+	// )
 }
 
 func (m OrgModel) Init() tea.Cmd {

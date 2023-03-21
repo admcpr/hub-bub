@@ -33,3 +33,34 @@ func TestOrgModel_Update(t *testing.T) {
 		})
 	}
 }
+
+func TestOrgModel_NewOrgModel(t *testing.T) {
+	type args struct {
+		title  string
+		width  int
+		height int
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{name: "Test NewOrgModel", args: args{title: "hub-bub", width: 1024, height: 768}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := NewOrgModel(tt.args.title, tt.args.width, tt.args.height)
+			if got.Title != tt.args.title {
+				t.Errorf("NewOrgModel title got = %v, want %v", got.Title, tt.args.title)
+			}
+			if got.width != tt.args.width {
+				t.Errorf("NewOrgModel width got = %v, want %v", got.width, tt.args.width)
+			}
+			if got.height != tt.args.height {
+				t.Errorf("NewOrgModel height got = %v, want %v", got.height, tt.args.height)
+			}
+			if got.keys.Enter.Enabled() != true {
+				t.Errorf("NewOrgModel keys.Enter got = %v, want %v", got.keys.Enter.Enabled(), true)
+			}
+		})
+	}
+}

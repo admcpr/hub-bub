@@ -9,24 +9,23 @@ type repoKeyMap struct {
 	Down   key.Binding
 	Left   key.Binding
 	Right  key.Binding
-	Enter  key.Binding
-	Esc    key.Binding
 	Filter key.Binding
+	Esc    key.Binding
 	Quit   key.Binding
 }
 
 // ShortHelp returns keybindings to be shown in the mini help view. It's part
 // of the key.Map interface.
 func (k repoKeyMap) ShortHelp() []key.Binding {
-	return []key.Binding{k.Enter, k.Esc, k.Up, k.Down, k.Quit}
+	return []key.Binding{k.Up, k.Down, k.Left, k.Right, k.Filter, k.Esc, k.Quit}
 }
 
 // FullHelp returns keybindings for the expanded help view. It's part of the
 // key.Map interface.
 func (k repoKeyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
-		{k.Up, k.Down, k.Left, k.Right}, // first column
-		{k.Enter, k.Esc, k.Quit},        // second column
+		{k.Up, k.Down, k.Left, k.Right, k.Filter, k.Esc, k.Quit}, // first column
+		{k.Up, k.Down, k.Left, k.Right, k.Filter, k.Esc, k.Quit}, // second column
 	}
 }
 
