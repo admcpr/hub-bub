@@ -93,13 +93,12 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				_, cmd = m.repoModel.Update(msg)
 			}
 		} else {
+			m.repoList, cmd = m.repoList.Update(msg)
+			m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
+
 			switch msg.Type {
-			case tea.KeyDown, tea.KeyUp:
-				m.repoList, cmd = m.repoList.Update(msg)
-				m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
 			case tea.KeyEnter:
 				m.tabsHaveFocus = true
-				m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
 			case tea.KeyEsc:
 				return MainModel[UserModelName], nil
 			}
