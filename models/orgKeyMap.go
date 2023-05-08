@@ -19,7 +19,7 @@ type orgKeyMap struct {
 // of the key.Map interface.
 func (k orgKeyMap) ShortHelp() []key.Binding {
 	k.Help.SetEnabled(true)
-	return []key.Binding{k.Enter, k.Esc, k.Up, k.Down, k.Quit}
+	return []key.Binding{k.Up, k.Down, k.Enter, k.Esc, k.Quit}
 }
 
 // FullHelp returns keybindings for the expanded help view. It's part of the
@@ -35,11 +35,11 @@ func NewKeyMap() orgKeyMap {
 	return orgKeyMap{
 		Up: key.NewBinding(
 			key.WithKeys("up", "k"),
-			key.WithHelp("↑/k", "move up"),
+			key.WithHelp("↑/k", "up"),
 		),
 		Down: key.NewBinding(
 			key.WithKeys("down", "j"),
-			key.WithHelp("↓/j", "move down"),
+			key.WithHelp("↓/j", "down"),
 		),
 		Left: key.NewBinding(
 			key.WithKeys("left", "h"),
@@ -62,7 +62,7 @@ func NewKeyMap() orgKeyMap {
 			key.WithHelp("?", "toggle help"),
 		),
 		Quit: key.NewBinding(
-			key.WithKeys("q", "esc", "ctrl+c"),
+			key.WithKeys("q"),
 			key.WithHelp("q", "quit"),
 		),
 	}

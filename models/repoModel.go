@@ -74,7 +74,7 @@ func (m RepoModel) View() string {
 	m.buildSettingsTable()
 
 	var tabs = m.RenderTabs()
-	var settings = settingsStyle.Padding(0).Width(m.width - 6).Render(m.settingsTable.View())
+	var settings = settingsStyle.Padding(0).Width(m.width - 2).Render(m.settingsTable.View())
 
 	return lipgloss.JoinVertical(lipgloss.Left, tabs, settings)
 }
@@ -82,7 +82,7 @@ func (m RepoModel) View() string {
 func (m *RepoModel) buildSettingsTable() {
 	var activeSettings = m.repoSettingsTabs[m.activeTab]
 
-	columns := []table.Column{{Title: "", Width: 40}, {Title: "", Width: 11}}
+	columns := []table.Column{{Title: "", Width: 50}, {Title: "", Width: 11}}
 
 	rows := make([]table.Row, len(activeSettings.Settings))
 	for i, setting := range activeSettings.Settings {
@@ -133,18 +133,4 @@ func (m RepoModel) RenderTabs() string {
 	row := lipgloss.JoinHorizontal(lipgloss.Top, renderedTabs...)
 
 	return row
-}
-
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
