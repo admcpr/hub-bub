@@ -1,6 +1,7 @@
 package models
 
 import (
+	"hub-bub/keyMaps"
 	"hub-bub/structs"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -15,7 +16,7 @@ type RepoModel struct {
 	settingsTable table.Model
 
 	help help.Model
-	keys repoKeyMap
+	keys keyMaps.RepoKeyMap
 
 	activeTab int
 	loaded    bool
@@ -29,7 +30,7 @@ func NewRepoModel(width, height int) RepoModel {
 		width:            width,
 		height:           height,
 		help:             help.New(),
-		keys:             NewRepoKeyMap(),
+		keys:             keyMaps.NewRepoKeyMap(),
 	}
 }
 
@@ -71,18 +72,23 @@ func (m RepoModel) View() string {
 		return ""
 	}
 
+	settingsStyle := appStyle.Copy().Border(settingsBorder()).
+		BorderForeground(lipgloss.Color(pink)).Padding(0).Margin(0)
+
 	m.buildSettingsTable()
 
 	var tabs = m.RenderTabs()
-	var settings = settingsStyle.Padding(0).Width(m.width - 2).Render(m.settingsTable.View())
+	var settings = settingsStyle.Padding(0).Width(m.width - 2).Height(m.height - 7).Render(m.settingsTable.View())
 
 	return lipgloss.JoinVertical(lipgloss.Left, tabs, settings)
 }
 
 func (m *RepoModel) buildSettingsTable() {
-	var activeSettings = m.repoSettingsTabs[m.activeTab]
+	activeSettings := m.repoSettingsTabs[m.activeTab]
+	widthWithoutBorder := m.width - 2
+	quarterWidth := quarter(widthWithoutBorder)
 
-	columns := []table.Column{{Title: "", Width: 50}, {Title: "", Width: 11}}
+	columns := []table.Column{{Title: "", Width: (widthWithoutBorder - quarterWidth)}, {Title: "", Width: quarterWidth}}
 
 	rows := make([]table.Row, len(activeSettings.Settings))
 	for i, setting := range activeSettings.Settings {
@@ -95,16 +101,24 @@ func (m *RepoModel) buildSettingsTable() {
 }
 
 func (m RepoModel) RenderTabs() string {
-	Tabs := []string{}
+	inactiveTabBorder := tabBorderWithBottom("┴", "─", "┴")
+	activeTabBorder := tabBorderWithBottom("┘", " ", "└")
+	borderColor := lipgloss.Color(pink)
+	inactiveTabStyle := lipgloss.NewStyle().Border(inactiveTabBorder, true).BorderForeground(borderColor).Padding(0)
+	activeTabStyle := inactiveTabStyle.Copy().Border(activeTabBorder, true)
+
+	tabs := []string{}
 	for _, t := range m.repoSettingsTabs {
-		Tabs = append(Tabs, t.Name)
+		tabs = append(tabs, t.Name)
 	}
+
+	tabWidth := ((m.width) / len(tabs)) - 2
 
 	var renderedTabs []string
 
-	for i, t := range Tabs {
+	for i, t := range tabs {
 		var style lipgloss.Style
-		isFirst, isLast, isActive := i == 0, i == len(Tabs)-1, i == m.activeTab
+		isFirst, isLast, isActive := i == 0, i == len(tabs)-1, i == m.activeTab
 		if isActive {
 			style = activeTabStyle.Copy()
 		} else {
@@ -122,9 +136,9 @@ func (m RepoModel) RenderTabs() string {
 		}
 
 		if isLast {
-			style = style.Border(border).Width((m.width / len(Tabs)) - 1)
+			style = style.Border(border).Width(tabWidth + (m.width % len(tabs)))
 		} else {
-			style = style.Border(border).Width((m.width / len(Tabs)) - 3)
+			style = style.Border(border).Width(tabWidth)
 		}
 
 		renderedTabs = append(renderedTabs, style.Render(t))
@@ -133,4 +147,20 @@ func (m RepoModel) RenderTabs() string {
 	row := lipgloss.JoinHorizontal(lipgloss.Top, renderedTabs...)
 
 	return row
+}
+
+func tabBorderWithBottom(left, middle, right string) lipgloss.Border {
+	border := lipgloss.RoundedBorder()
+	border.BottomLeft = left
+	border.Bottom = middle
+	border.BottomRight = right
+	return border
+}
+
+func settingsBorder() lipgloss.Border {
+	border := lipgloss.RoundedBorder()
+	border.Top = ""
+	border.TopLeft = "│"
+	border.TopRight = "│"
+	return border
 }

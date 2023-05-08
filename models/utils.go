@@ -4,6 +4,10 @@ func half(width int) int {
 	return width / 2
 }
 
+func quarter(width int) int {
+	return width / 4
+}
+
 func max(a, b int) int {
 	if a > b {
 		return a
