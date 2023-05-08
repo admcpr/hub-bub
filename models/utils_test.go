@@ -1,24 +1,40 @@
 package models
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
 
 func TestHalf(t *testing.T) {
-	type args struct {
-		width int
-	}
 	tests := []struct {
-		name string
-		args args
+		arg  int
 		want int
 	}{
-		{"Half", args{4}, 2},
-		{"Half", args{5}, 2},
+		{4, 2},
+		{5, 2},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := half(tt.args.width); got != tt.want {
-				t.Errorf("half() = %v, want %v", got, tt.want)
-			}
+		t.Run(fmt.Sprintf("Half of %v", tt.arg), func(t *testing.T) {
+			assert.Equal(t, tt.want, half(tt.arg))
+		})
+	}
+}
+
+func TestQuarter(t *testing.T) {
+	tests := []struct {
+		arg  int
+		want int
+	}{
+		{4, 1},
+		{5, 1},
+		{8, 2},
+		{11, 2},
+	}
+	for _, tt := range tests {
+		t.Run(fmt.Sprintf("Quarter of %v", tt.arg), func(t *testing.T) {
+			assert.Equal(t, tt.want, quarter(tt.arg))
 		})
 	}
 }

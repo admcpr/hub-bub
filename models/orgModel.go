@@ -3,6 +3,7 @@ package models
 import (
 	"log"
 
+	"hub-bub/keyMaps"
 	"hub-bub/messages"
 	"hub-bub/structs"
 
@@ -21,7 +22,7 @@ type OrgModel struct {
 	repoList  list.Model
 	repoModel RepoModel
 	help      help.Model
-	keys      orgKeyMap
+	keys      keyMaps.OrgKeyMap
 
 	loaded        bool
 	width         int
@@ -35,7 +36,7 @@ func NewOrgModel(title string, width, height int) OrgModel {
 		width:     width,
 		height:    height,
 		help:      help.New(),
-		keys:      NewKeyMap(),
+		keys:      keyMaps.NewOrgKeyMap(),
 		repoModel: NewRepoModel(width/2, height),
 		repoList:  list.New([]list.Item{}, list.NewDefaultDelegate(), width/2, height),
 	}
@@ -63,7 +64,6 @@ func (m OrgModel) Init() tea.Cmd {
 
 func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
-	// var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
 
@@ -87,25 +87,31 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			case tea.KeyRight:
 				m.repoModel.NextTab()
-				_, cmd = m.repoModel.Update(msg)
 			case tea.KeyLeft:
 				m.repoModel.PreviousTab()
-				_, cmd = m.repoModel.Update(msg)
 			}
 		} else {
 			switch msg.String() {
 			case tea.KeyEnter.String():
 				m.tabsHaveFocus = true
 			case tea.KeyEsc.String():
-				return MainModel[UserModelName], nil
+				if !m.repoList.FilteringEnabled() {
+					return MainModel[UserModelName], nil
+				}
 			case "ctrl+c", "q":
-				if m.repoList.FilterState() == list.Unfiltered {
+				if !m.repoList.FilteringEnabled() {
 					return m, tea.Quit
 				}
+			case tea.KeyUp.String(), tea.KeyDown.String(), tea.KeyLeft.String(), tea.KeyRight.String():
+				m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
 			}
-			m.repoList, cmd = m.repoList.Update(msg)
-			m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
 		}
+	}
+
+	if m.tabsHaveFocus {
+		_, cmd = m.repoModel.Update(msg)
+	} else {
+		m.repoList, cmd = m.repoList.Update(msg)
 	}
 
 	return m, cmd
@@ -149,7 +155,7 @@ func buildRepoListModel(organizationQuery structs.OrganizationQuery, width, heig
 		items[i] = structs.NewListItem(repo.Node.Name, repo.Node.Url)
 	}
 
-	list := list.New(items, list.NewDefaultDelegate(), width, height-titleHeight)
+	list := list.New(items, list.NewDefaultDelegate(), width, height-2)
 	list.Title = organizationQuery.Organization.Login
 	list.SetStatusBarItemName("Repository", "Repositories")
 	list.SetShowHelp(false)

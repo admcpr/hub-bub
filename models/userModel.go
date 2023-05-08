@@ -10,6 +10,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
 type UserModel struct {
@@ -92,12 +93,18 @@ func (m UserModel) View() string {
 }
 
 func buildOrgListModel(organisations []structs.Organisation, width, height int) list.Model {
+
+	titleStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color(white)).
+		Background(lipgloss.Color(blueDarker)).
+		Padding(0, 1)
+
 	items := make([]list.Item, len(organisations))
 	for i, org := range organisations {
 		items[i] = structs.NewListItem(org.Login, org.Url)
 	}
 
-	list := list.New(items, list.NewDefaultDelegate(), width, height-titleHeight)
+	list := list.New(items, list.NewDefaultDelegate(), width, height-2)
 
 	list.Title = "Organisations"
 	list.SetStatusBarItemName("Organisation", "Organisations")
