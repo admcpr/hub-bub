@@ -10,7 +10,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
 type UserModel struct {
@@ -61,7 +60,7 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case messages.OrgListMsg:
-		m.list = buildOrgListModel(msg.Organisations, m.width, m.height)
+		m.list = buildOrgListModel(msg.Organisations, m.width, m.height, m.User)
 		return m, nil
 
 	case tea.KeyMsg:
@@ -92,21 +91,15 @@ func (m UserModel) View() string {
 	return appStyle.Render(m.list.View())
 }
 
-func buildOrgListModel(organisations []structs.Organisation, width, height int) list.Model {
-
-	titleStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color(white)).
-		Background(lipgloss.Color(blueDarker)).
-		Padding(0, 1)
-
+func buildOrgListModel(organisations []structs.Organisation, width, height int, user structs.User) list.Model {
 	items := make([]list.Item, len(organisations))
 	for i, org := range organisations {
 		items[i] = structs.NewListItem(org.Login, org.Url)
 	}
 
-	list := list.New(items, list.NewDefaultDelegate(), width, height-2)
+	list := list.New(items, defaultDelegate, width, height-2)
 
-	list.Title = "Organisations"
+	list.Title = "User: " + user.Name
 	list.SetStatusBarItemName("Organisation", "Organisations")
 	list.Styles.Title = titleStyle
 	list.SetShowTitle(true)
