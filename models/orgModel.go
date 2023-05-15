@@ -90,6 +90,7 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case tea.KeyLeft:
 				m.repoModel.PreviousTab()
 			}
+			m.repoModel, cmd = m.repoModel.Update(msg)
 		} else {
 			switch msg.String() {
 			case tea.KeyEnter.String():
@@ -105,13 +106,8 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case tea.KeyUp.String(), tea.KeyDown.String(), tea.KeyLeft.String(), tea.KeyRight.String():
 				m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
 			}
+			m.repoList, cmd = m.repoList.Update(msg)
 		}
-	}
-
-	if m.tabsHaveFocus {
-		_, cmd = m.repoModel.Update(msg)
-	} else {
-		m.repoList, cmd = m.repoList.Update(msg)
 	}
 
 	return m, cmd
@@ -155,8 +151,9 @@ func buildRepoListModel(organizationQuery structs.OrganizationQuery, width, heig
 		items[i] = structs.NewListItem(repo.Node.Name, repo.Node.Url)
 	}
 
-	list := list.New(items, list.NewDefaultDelegate(), width, height-2)
-	list.Title = organizationQuery.Organization.Login
+	list := list.New(items, defaultDelegate, width, height-2)
+	list.Title = "Organization: " + organizationQuery.Organization.Login
+	list.Styles.Title = titleStyle
 	list.SetStatusBarItemName("Repository", "Repositories")
 	list.SetShowHelp(false)
 	list.SetShowTitle(true)

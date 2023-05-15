@@ -14,7 +14,7 @@ func TestYesNo(t *testing.T) {
 		want string
 	}{
 		{"Yes", args{true}, "✔️"},
-		{"No", args{false}, "❌"},
+		{"No", args{false}, "✖️"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
