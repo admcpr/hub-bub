@@ -6,20 +6,12 @@ import (
 )
 
 var (
-	// Colors
-	// purple     = lipgloss.Color("#cdb4db")
-	// pink       = lipgloss.Color("#ffc8dd")
-	// pinkDarker = lipgloss.Color("#ffafcc")
-	// blue       = lipgloss.Color("#bde0fe")
-	// blueDarker = lipgloss.Color("#a2d2ff")
-	// white      = lipgloss.Color("#FFFDF5")
-
-	pink         = lipgloss.Color("#f72585")
-	purple       = lipgloss.Color("#7209b7")
-	purpleDarker = lipgloss.Color("#3a0ca3")
-	blue         = lipgloss.Color("#4361ee")
-	blueLighter  = lipgloss.Color("#4cc9f0")
-	white        = lipgloss.Color("#dddddd")
+	pink = lipgloss.Color("#f72585")
+	// purple       = lipgloss.Color("#7209b7")
+	// purpleDarker = lipgloss.Color("#3a0ca3")
+	blue        = lipgloss.Color("#4361ee")
+	blueLighter = lipgloss.Color("#4cc9f0")
+	white       = lipgloss.Color("#dddddd")
 
 	appStyle = lipgloss.NewStyle().Padding(0, 0).Foreground(white).BorderForeground(blue)
 
