@@ -9,7 +9,7 @@ import (
 func RenderTabs(tabSettings []structs.RepositorySettingsTab, width, activeTab int) string {
 	inactiveTabBorder := tabBorderWithBottom("┴", "─", "┴")
 	activeTabBorder := tabBorderWithBottom("┘", " ", "└")
-	inactiveTabStyle := lipgloss.NewStyle().Border(inactiveTabBorder, true).BorderForeground(pink).Padding(0)
+	inactiveTabStyle := lipgloss.NewStyle().Border(inactiveTabBorder, true).BorderForeground(blueLighter).Padding(0)
 	activeTabStyle := inactiveTabStyle.Copy().Border(activeTabBorder, true)
 
 	tabs := []string{}
@@ -43,9 +43,9 @@ func RenderTabs(tabSettings []structs.RepositorySettingsTab, width, activeTab in
 		style = style.Border(border)
 
 		if i == activeTab {
-			style = style.Foreground(blueDarker)
+			style = style.Foreground(pink)
 		} else {
-			style = style.Foreground(pinkDarker)
+			style = style.Foreground(purple)
 		}
 
 		if isLast {

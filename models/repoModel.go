@@ -83,7 +83,7 @@ func (m RepoModel) View() string {
 	}
 
 	settingsStyle := appStyle.Copy().Border(settingsBorder()).
-		BorderForeground(pink).Padding(0).Margin(0)
+		BorderForeground(blueLighter).Padding(0).Margin(0)
 
 	var tabs = RenderTabs(m.repoSettingsTabs, m.width, m.activeTab)
 	var settings = settingsStyle.Width(m.width - 2).Render(m.settingsTable.View())
@@ -111,8 +111,8 @@ func NewSettingsTable(activeSettings structs.RepositorySettingsTab, width int) t
 
 func GetTableStyles() table.Styles {
 	return table.Styles{
-		Selected: lipgloss.NewStyle().Bold(true).Foreground(blueDarker),
-		Header:   lipgloss.NewStyle().Bold(true).Foreground(pinkDarker).Underline(true).Padding(0, 0, 1, 0),
+		Selected: lipgloss.NewStyle().Bold(true).Foreground(pink),
+		Header:   lipgloss.NewStyle().Bold(true).Foreground(blue).Underline(true).Padding(0, 0, 1, 0),
 		Cell:     lipgloss.NewStyle().Padding(0),
 	}
 }
