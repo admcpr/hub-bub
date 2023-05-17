@@ -112,7 +112,8 @@ func NewSettingsTable(activeSettings structs.RepositorySettingsTab, width int) t
 func GetTableStyles() table.Styles {
 	return table.Styles{
 		Selected: lipgloss.NewStyle().Bold(true).Foreground(pink),
-		Header:   lipgloss.NewStyle().Bold(true).Foreground(blue).Underline(true).Padding(0, 0, 1, 0),
-		Cell:     lipgloss.NewStyle().Padding(0),
+		Header: lipgloss.NewStyle().Bold(true).Foreground(blue).BorderStyle(lipgloss.NormalBorder()).
+			BorderBottom(true).BorderForeground(blueLighter),
+		Cell: lipgloss.NewStyle().Padding(0),
 	}
 }

@@ -9,10 +9,12 @@ import (
 	"github.com/cli/go-gh"
 
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 type UserModel struct {
+	Authenticating bool
 	Authenticated  bool
 	User           structs.User
 	SelectedOrgUrl string
@@ -20,19 +22,24 @@ type UserModel struct {
 	loaded         bool
 	width          int
 	height         int
+	spinner        spinner.Model
 }
 
-func (m *UserModel) initList() {
-	m.list = list.New(
-		[]list.Item{},
-		list.NewDefaultDelegate(),
-		m.width,
-		m.height,
-	)
+func NewUserModel() UserModel {
+	return UserModel{
+		Authenticating: true,
+		list: list.New(
+			[]list.Item{},
+			list.NewDefaultDelegate(),
+			0,
+			0,
+		),
+		spinner: spinner.New(spinner.WithSpinner(spinner.Moon)),
+	}
 }
 
 func (m UserModel) Init() tea.Cmd {
-	return checkLoginStatus
+	return tea.Batch(checkLoginStatus, m.spinner.Tick)
 }
 
 func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -45,17 +52,20 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 
 		if !m.loaded {
-			m.initList()
+			m.list.SetWidth(m.width)
+			m.list.SetHeight(m.height)
 			m.loaded = true
 		}
 		return m, nil
 
 	case messages.AuthenticationMsg:
+		m.Authenticating = false
 		m.Authenticated = true
 		m.User = msg.User
 		return m, getOrganisations
 
 	case messages.AuthenticationErrorMsg:
+		m.Authenticating = false
 		m.Authenticated = false
 		return m, nil
 
@@ -76,6 +86,10 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			return orgModel, orgModel.GetRepositories
 		}
+
+	default:
+		m.spinner, cmd = m.spinner.Update(msg)
+		return m, cmd
 	}
 
 	m.list, cmd = m.list.Update(msg)
@@ -84,8 +98,11 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m UserModel) View() string {
-	if !m.Authenticated {
+	if !m.Authenticating && !m.Authenticated {
 		return fmt.Sprintln("You are not authenticated try running `gh auth login`. Press q to quit.")
+	}
+	if m.Authenticating {
+		return fmt.Sprintf("%s Authenticating with github", m.spinner.View())
 	}
 
 	return appStyle.Render(m.list.View())

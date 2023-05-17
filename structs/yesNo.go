@@ -2,7 +2,7 @@ package structs
 
 func YesNo(b bool) string {
 	if b {
-		return "✔️"
+		return "Yes"
 	}
-	return "✖️"
+	return "No"
 }

@@ -103,7 +103,7 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if !m.repoList.FilteringEnabled() {
 					return m, tea.Quit
 				}
-			case tea.KeyUp.String(), tea.KeyDown.String(), tea.KeyLeft.String(), tea.KeyRight.String():
+			case tea.KeyUp.String(), tea.KeyDown.String():
 				m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
 			}
 			m.repoList, cmd = m.repoList.Update(msg)

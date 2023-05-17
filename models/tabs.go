@@ -40,12 +40,10 @@ func RenderTabs(tabSettings []structs.RepositorySettingsTab, width, activeTab in
 			border.BottomRight = "┤"
 		}
 
-		style = style.Border(border)
+		style = style.Border(border).Align(lipgloss.Center)
 
 		if i == activeTab {
 			style = style.Foreground(pink)
-		} else {
-			style = style.Foreground(purple)
 		}
 
 		if isLast {
