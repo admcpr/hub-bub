@@ -101,15 +101,19 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case tea.KeyEsc.String():
 				if !m.repoList.FilteringEnabled() {
 					return MainModel[UserModelName], nil
+				} else {
+					m.repoList.SetFilteringEnabled(false)
 				}
 			case "ctrl+c", "q":
 				if !m.repoList.FilteringEnabled() {
 					return m, tea.Quit
 				}
 			case tea.KeyUp.String(), tea.KeyDown.String():
+				m.repoList, cmd = m.repoList.Update(msg)
 				m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
+			default:
+				m.repoList, cmd = m.repoList.Update(msg)
 			}
-			m.repoList, cmd = m.repoList.Update(msg)
 		}
 
 	default:
