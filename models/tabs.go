@@ -40,7 +40,7 @@ func RenderTabs(tabSettings []structs.RepositorySettingsTab, width, activeTab in
 			border.BottomRight = "┤"
 		}
 
-		style = style.Border(border).Align(lipgloss.Center)
+		style = style.Border(border).Align(lipgloss.Center).MaxHeight(3)
 
 		if i == activeTab {
 			style = style.Foreground(pink)

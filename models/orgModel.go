@@ -44,7 +44,7 @@ func NewOrgModel(title string, width, height int) OrgModel {
 		repoModel: NewRepoModel(width/2, height),
 		repoList:  list.New([]list.Item{}, list.NewDefaultDelegate(), width/2, height),
 		getting:   true,
-		spinner:   spinner.New(spinner.WithSpinner(spinner.Jump)),
+		spinner:   spinner.New(spinner.WithSpinner(spinner.Pulse)),
 	}
 }
 
@@ -60,10 +60,6 @@ func (m *OrgModel) getSelectedRepo() structs.RepositoryQuery {
 	return m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node
 }
 
-func (m *OrgModel) init(width, height int) {
-	m.loaded = true
-}
-
 func (m OrgModel) Init() tea.Cmd {
 	return m.spinner.Tick
 }
@@ -75,7 +71,7 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.WindowSizeMsg:
 		if !m.loaded {
-			m.init(msg.Width, msg.Height)
+			m.loaded = true
 		}
 		return m, nil
 
@@ -83,7 +79,7 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.repoList = buildRepoListModel(msg.OrganizationQuery, m.width, m.height)
 		m.RepoQuery = msg.OrganizationQuery
 		m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
-		m.getting = false
+		// m.getting = false
 		return m, nil
 
 	case tea.KeyMsg:

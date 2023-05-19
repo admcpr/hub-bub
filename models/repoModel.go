@@ -86,8 +86,7 @@ func (m RepoModel) View() string {
 		BorderForeground(blueLighter).Padding(0).Margin(0)
 
 	var tabs = RenderTabs(m.repoSettingsTabs, m.width, m.activeTab)
-	var settings = settingsStyle.Width(m.width - 2).Render(m.settingsTable.View())
-	// var settings = settingsStyle.Width(m.width - 2).Height(m.height - 7).Render(m.settingsTable.View())
+	var settings = settingsStyle.Width(m.width - 2).Height(m.height - 7).Render(m.settingsTable.View())
 
 	return lipgloss.JoinVertical(lipgloss.Left, tabs, settings)
 }

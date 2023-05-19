@@ -34,7 +34,7 @@ func NewUserModel() UserModel {
 			0,
 			0,
 		),
-		spinner: spinner.New(spinner.WithSpinner(spinner.Moon)),
+		spinner: spinner.New(spinner.WithSpinner(spinner.Pulse)),
 	}
 }
 
