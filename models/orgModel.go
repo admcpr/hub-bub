@@ -99,13 +99,12 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case tea.KeyEnter.String():
 				m.tabsHaveFocus = true
 			case tea.KeyEsc.String():
-				if !m.repoList.FilteringEnabled() {
+				if !m.repoList.SettingFilter() {
 					return MainModel[UserModelName], nil
-				} else {
-					m.repoList.SetFilteringEnabled(false)
 				}
+				m.repoList, cmd = m.repoList.Update(msg)
 			case "ctrl+c", "q":
-				if !m.repoList.FilteringEnabled() {
+				if !m.repoList.SettingFilter() {
 					return m, tea.Quit
 				}
 			case tea.KeyUp.String(), tea.KeyDown.String():
