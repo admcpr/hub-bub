@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	models.MainModel = []tea.Model{&models.UserModel{}, &models.OrgModel{}}
+	models.MainModel = []tea.Model{models.NewUserModel(), &models.OrgModel{}}
 
 	p := tea.NewProgram(models.MainModel[models.UserModelName])
 	if _, err := p.Run(); err != nil {

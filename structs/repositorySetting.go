@@ -16,12 +16,10 @@ type RepositorySettingsTab struct {
 	Settings []RepositorySetting
 }
 
-func NewRepoSetting(name, value, url, propertyName string, loaded bool) RepositorySetting {
+func NewRepoSetting(name, value string) RepositorySetting {
 	return RepositorySetting{
-		Name:         name,
-		Value:        value,
-		Url:          url,
-		PropertyName: propertyName,
+		Name:  name,
+		Value: value,
 	}
 }
 
@@ -46,17 +44,17 @@ func buildOverviewSettings(ornq RepositoryQuery) RepositorySettingsTab {
 	var repositorySettings []RepositorySetting
 
 	repositorySettings = append(repositorySettings,
-		NewRepoSetting("Private", YesNo(ornq.IsPrivate), "", "", true),
-		NewRepoSetting("Template", YesNo(ornq.IsTemplate), "", "", true),
-		NewRepoSetting("Archived", YesNo(ornq.IsArchived), "", "", true),
-		NewRepoSetting("Disabled", YesNo(ornq.IsDisabled), "", "", true),
-		NewRepoSetting("Fork", YesNo(ornq.IsFork), "", "", true),
-		NewRepoSetting("Last updated", ornq.UpdatedAt.Format("2006/01/02"), "", "", true),
-		NewRepoSetting("Stars", fmt.Sprint(ornq.StargazerCount), "", "", true),
-		NewRepoSetting("Wiki", YesNo(ornq.HasWikiEnabled), "", "", true),
-		NewRepoSetting("Issues", YesNo(ornq.HasIssuesEnabled), "", "", true),
-		NewRepoSetting("Projects", YesNo(ornq.HasProjectsEnabled), "", "", true),
-		NewRepoSetting("Discussions", YesNo(ornq.HasDiscussionsEnabled), "", "", true))
+		NewRepoSetting("Private", YesNo(ornq.IsPrivate)),
+		NewRepoSetting("Template", YesNo(ornq.IsTemplate)),
+		NewRepoSetting("Archived", YesNo(ornq.IsArchived)),
+		NewRepoSetting("Disabled", YesNo(ornq.IsDisabled)),
+		NewRepoSetting("Fork", YesNo(ornq.IsFork)),
+		NewRepoSetting("Last updated", ornq.UpdatedAt.Format("2006/01/02")),
+		NewRepoSetting("Stars", fmt.Sprint(ornq.StargazerCount)),
+		NewRepoSetting("Wiki", YesNo(ornq.HasWikiEnabled)),
+		NewRepoSetting("Issues", YesNo(ornq.HasIssuesEnabled)),
+		NewRepoSetting("Projects", YesNo(ornq.HasProjectsEnabled)),
+		NewRepoSetting("Discussions", YesNo(ornq.HasDiscussionsEnabled)))
 
 	return NewRepoSettingsTab("Overview", repositorySettings)
 }
@@ -65,12 +63,12 @@ func buildPullRequestSettings(ornq RepositoryQuery) RepositorySettingsTab {
 	var repositorySettings []RepositorySetting
 
 	repositorySettings = append(repositorySettings,
-		NewRepoSetting("Allow merge commits", YesNo(ornq.MergeCommitAllowed), "", "", true),
-		NewRepoSetting("Allow squash merging", YesNo(ornq.SquashMergeAllowed), "", "", true),
-		NewRepoSetting("Allow rebase merging", YesNo(ornq.RebaseMergeAllowed), "", "", true),
-		NewRepoSetting("Allow auto-merge", YesNo(ornq.AutoMergeAllowed), "", "", true),
-		NewRepoSetting("Automatically delete head branches", YesNo(ornq.DeleteBranchOnMerge), "", "", true),
-		NewRepoSetting("Open pull requests", fmt.Sprint(ornq.PullRequests.TotalCount), "", "", true),
+		NewRepoSetting("Allow merge commits", YesNo(ornq.MergeCommitAllowed)),
+		NewRepoSetting("Allow squash merging", YesNo(ornq.SquashMergeAllowed)),
+		NewRepoSetting("Allow rebase merging", YesNo(ornq.RebaseMergeAllowed)),
+		NewRepoSetting("Allow auto-merge", YesNo(ornq.AutoMergeAllowed)),
+		NewRepoSetting("Automatically delete head branches", YesNo(ornq.DeleteBranchOnMerge)),
+		NewRepoSetting("Open pull requests", fmt.Sprint(ornq.PullRequests.TotalCount)),
 	)
 
 	return NewRepoSettingsTab("Pull Requests", repositorySettings)
@@ -82,26 +80,26 @@ func buildDefaultBranchSettings(ornq RepositoryQuery) RepositorySettingsTab {
 	rule := ornq.DefaultBranchRef.BranchProtectionRule
 
 	repositorySettings = append(repositorySettings,
-		NewRepoSetting("Name", ornq.DefaultBranchRef.Name, "", "", true),
-		NewRepoSetting("Require approving reviews", YesNo(rule.RequiresApprovingReviews), "", "", true),
-		NewRepoSetting("Number of approvals required", fmt.Sprint(rule.RequiredApprovingReviewCount), "", "", true),
-		NewRepoSetting("Dismiss stale requests", YesNo(rule.DismissesStaleReviews), "", "", true),
-		NewRepoSetting("Require review from Code Owners", YesNo(rule.RequiresCodeOwnerReviews), "", "", true),
-		NewRepoSetting("Restrict who can dismiss pull request reviews", YesNo(rule.RestrictsReviewDismissals), "", "", true),
-		NewRepoSetting("Require approval of the most recent reviewable push", YesNo(rule.RequireLastPushApproval), "", "", true),
+		NewRepoSetting("Name", ornq.DefaultBranchRef.Name),
+		NewRepoSetting("Require approving reviews", YesNo(rule.RequiresApprovingReviews)),
+		NewRepoSetting("Number of approvals required", fmt.Sprint(rule.RequiredApprovingReviewCount)),
+		NewRepoSetting("Dismiss stale requests", YesNo(rule.DismissesStaleReviews)),
+		NewRepoSetting("Require review from Code Owners", YesNo(rule.RequiresCodeOwnerReviews)),
+		NewRepoSetting("Restrict who can dismiss pull request reviews", YesNo(rule.RestrictsReviewDismissals)),
+		NewRepoSetting("Require approval of the most recent reviewable push", YesNo(rule.RequireLastPushApproval)),
 		// Allow specified actors to bypass required pull requests
 
-		NewRepoSetting("Require status checks to pass before merging", YesNo(rule.RequiresStatusChecks), "", "", true),
-		NewRepoSetting("Require conversation resolution before merging", YesNo(rule.RequiresConversationResolution), "", "", true),
-		NewRepoSetting("Requires signed commits", YesNo(rule.RequiresCommitSignatures), "", "", true),
-		NewRepoSetting("Require linear history", YesNo(rule.RequiresLinearHistory), "", "", true),
-		NewRepoSetting("Require deployments to succeed before merging", YesNo(rule.RequiresDeployments), "", "", true),
-		NewRepoSetting("Lock branch", YesNo(rule.LockBranch), "", "", true),
-		NewRepoSetting("Do not allow bypassing the above settings", YesNo(rule.IsAdminEnforced), "", "", true),
-		NewRepoSetting("Restrict who can push to matching branches", YesNo(rule.RestrictsPushes), "", "", true),
+		NewRepoSetting("Require status checks to pass before merging", YesNo(rule.RequiresStatusChecks)),
+		NewRepoSetting("Require conversation resolution before merging", YesNo(rule.RequiresConversationResolution)),
+		NewRepoSetting("Requires signed commits", YesNo(rule.RequiresCommitSignatures)),
+		NewRepoSetting("Require linear history", YesNo(rule.RequiresLinearHistory)),
+		NewRepoSetting("Require deployments to succeed before merging", YesNo(rule.RequiresDeployments)),
+		NewRepoSetting("Lock branch", YesNo(rule.LockBranch)),
+		NewRepoSetting("Do not allow bypassing the above settings", YesNo(rule.IsAdminEnforced)),
+		NewRepoSetting("Restrict who can push to matching branches", YesNo(rule.RestrictsPushes)),
 
-		NewRepoSetting("Allow force pushes", YesNo(rule.AllowsForcePushes), "", "", true),
-		NewRepoSetting("Allow deletions", YesNo(rule.AllowsDeletions), "", "", true),
+		NewRepoSetting("Allow force pushes", YesNo(rule.AllowsForcePushes)),
+		NewRepoSetting("Allow deletions", YesNo(rule.AllowsDeletions)),
 	)
 
 	return NewRepoSettingsTab("Default Branch", repositorySettings)
@@ -111,8 +109,8 @@ func buildSecuritySettings(ornq RepositoryQuery) RepositorySettingsTab {
 	var repositorySettings []RepositorySetting
 
 	repositorySettings = append(repositorySettings,
-		NewRepoSetting("Vulnerability alerts enabled", YesNo(ornq.HasVulnerabilityAlertsEnabled), "", "", true),
-		NewRepoSetting("Vulnerability alert count", fmt.Sprint(ornq.VulnerabilityAlerts.TotalCount), "", "", true),
+		NewRepoSetting("Vulnerability alerts enabled", YesNo(ornq.HasVulnerabilityAlertsEnabled)),
+		NewRepoSetting("Vulnerability alert count", fmt.Sprint(ornq.VulnerabilityAlerts.TotalCount)),
 	)
 
 	return NewRepoSettingsTab("Security", repositorySettings)

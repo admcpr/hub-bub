@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"log"
 
 	"hub-bub/keyMaps"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/cli/go-gh"
@@ -24,10 +26,12 @@ type OrgModel struct {
 	help      help.Model
 	keys      keyMaps.OrgKeyMap
 
-	loaded        bool
 	width         int
 	height        int
+	loaded        bool
 	tabsHaveFocus bool
+	getting       bool
+	spinner       spinner.Model
 }
 
 func NewOrgModel(title string, width, height int) OrgModel {
@@ -39,6 +43,8 @@ func NewOrgModel(title string, width, height int) OrgModel {
 		keys:      keyMaps.NewOrgKeyMap(),
 		repoModel: NewRepoModel(width/2, height),
 		repoList:  list.New([]list.Item{}, list.NewDefaultDelegate(), width/2, height),
+		getting:   true,
+		spinner:   spinner.New(spinner.WithSpinner(spinner.Pulse)),
 	}
 }
 
@@ -54,12 +60,8 @@ func (m *OrgModel) getSelectedRepo() structs.RepositoryQuery {
 	return m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node
 }
 
-func (m *OrgModel) init(width, height int) {
-	m.loaded = true
-}
-
 func (m OrgModel) Init() tea.Cmd {
-	return nil
+	return m.spinner.Tick
 }
 
 func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -69,7 +71,7 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.WindowSizeMsg:
 		if !m.loaded {
-			m.init(msg.Width, msg.Height)
+			m.loaded = true
 		}
 		return m, nil
 
@@ -77,6 +79,7 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.repoList = buildRepoListModel(msg.OrganizationQuery, m.width, m.height)
 		m.RepoQuery = msg.OrganizationQuery
 		m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
+		m.getting = false
 		return m, nil
 
 	case tea.KeyMsg:
@@ -96,24 +99,35 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case tea.KeyEnter.String():
 				m.tabsHaveFocus = true
 			case tea.KeyEsc.String():
-				if !m.repoList.FilteringEnabled() {
+				if !m.repoList.SettingFilter() {
 					return MainModel[UserModelName], nil
 				}
+				m.repoList, cmd = m.repoList.Update(msg)
 			case "ctrl+c", "q":
-				if !m.repoList.FilteringEnabled() {
+				if !m.repoList.SettingFilter() {
 					return m, tea.Quit
 				}
-			case tea.KeyUp.String(), tea.KeyDown.String(), tea.KeyLeft.String(), tea.KeyRight.String():
+			case tea.KeyUp.String(), tea.KeyDown.String():
+				m.repoList, cmd = m.repoList.Update(msg)
 				m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
+			default:
+				m.repoList, cmd = m.repoList.Update(msg)
 			}
-			m.repoList, cmd = m.repoList.Update(msg)
 		}
+
+	default:
+		m.spinner, cmd = m.spinner.Update(msg)
+		return m, cmd
 	}
 
 	return m, cmd
 }
 
 func (m OrgModel) View() string {
+	if m.getting {
+		return fmt.Sprintf("%s getting repos ...", m.spinner.View())
+	}
+
 	var repoList = appStyle.Width(half(m.width)).Render(m.repoList.View())
 	var settings = appStyle.Width(half(m.width)).Render(m.repoModel.View())
 	help := m.helpView()
