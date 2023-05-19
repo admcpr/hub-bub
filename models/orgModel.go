@@ -79,7 +79,7 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.repoList = buildRepoListModel(msg.OrganizationQuery, m.width, m.height)
 		m.RepoQuery = msg.OrganizationQuery
 		m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
-		// m.getting = false
+		m.getting = false
 		return m, nil
 
 	case tea.KeyMsg:
