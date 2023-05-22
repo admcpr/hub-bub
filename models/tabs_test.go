@@ -7,14 +7,14 @@ import (
 )
 
 func TestTabs_RenderTabs(t *testing.T) {
-	threeTabs := []structs.RepositorySettingsTab{
+	threeTabs := []structs.SettingsTab{
 		{Name: "Tab 1"},
 		{Name: "Tab 2"},
 		{Name: "Tab 3"},
 	}
 
 	type args struct {
-		tabSettings []structs.RepositorySettingsTab
+		tabSettings []structs.SettingsTab
 		width       int
 		activeTab   int
 	}
