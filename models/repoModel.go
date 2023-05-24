@@ -40,20 +40,20 @@ func (m RepoModel) Init() tea.Cmd {
 
 func (m *RepoModel) SelectRepo(repository structs.Repository, width, height int) {
 	m.repository = repository
-	m.settingsTable = NewSettingsTable(m.repository.Settings[m.activeTab], width)
+	m.settingsTable = NewSettingsTable(m.repository.SettingsTabs[m.activeTab].Settings, width)
 
 	m.width = width
 	m.height = height
 }
 
 func (m *RepoModel) NextTab() {
-	m.activeTab = min(m.activeTab+1, len(m.repository)-1)
-	m.settingsTable = NewSettingsTable(m.repository[m.activeTab], m.width)
+	m.activeTab = min(m.activeTab+1, len(m.repository.SettingsTabs)-1)
+	m.settingsTable = NewSettingsTable(m.repository.SettingsTabs[m.activeTab].Settings, m.width)
 }
 
 func (m *RepoModel) PreviousTab() {
 	m.activeTab = max(m.activeTab-1, 0)
-	m.settingsTable = NewSettingsTable(m.repository[m.activeTab], m.width)
+	m.settingsTable = NewSettingsTable(m.repository.SettingsTabs[m.activeTab].Settings, m.width)
 }
 
 func (m RepoModel) Update(msg tea.Msg) (RepoModel, tea.Cmd) {
@@ -78,14 +78,15 @@ func (m RepoModel) Update(msg tea.Msg) (RepoModel, tea.Cmd) {
 }
 
 func (m RepoModel) View() string {
-	if m.repository == nil || len(m.repository) == 0 {
+	if m.repository.SettingsTabs == nil || len(m.repository.SettingsTabs) == 0 {
+		// Can this ever happen ????
 		return ""
 	}
 
 	settingsStyle := appStyle.Copy().Border(settingsBorder()).
 		BorderForeground(blueLighter).Padding(0).Margin(0)
 
-	var tabs = RenderTabs(m.repository, m.width, m.activeTab)
+	var tabs = RenderTabs(m.repository.SettingsTabs, m.width, m.activeTab)
 	var settings = settingsStyle.Width(m.width - 2).Height(m.height - 7).Render(m.settingsTable.View())
 
 	return lipgloss.JoinVertical(lipgloss.Left, tabs, settings)

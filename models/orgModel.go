@@ -18,8 +18,8 @@ import (
 )
 
 type OrgModel struct {
-	Title     string
-	RepoQuery structs.OrganizationQuery
+	Title        string
+	Repositories []structs.Repository
 
 	repoList  list.Model
 	repoModel RepoModel
@@ -48,16 +48,36 @@ func NewOrgModel(title string, width, height int) OrgModel {
 	}
 }
 
+func (m *OrgModel) Hydrate(oq structs.OrganizationQuery, width, height int) {
+	edges := oq.Organization.Repositories.Edges
+	m.Repositories = make([]structs.Repository, len(edges))
+	items := make([]list.Item, len(edges))
+	for i, repoQuery := range edges {
+		repo := structs.NewRepository(repoQuery.Node)
+		m.Repositories[i] = repo
+		items[i] = structs.NewListItem(repo.Name, repo.Url)
+	}
+
+	list := list.New(items, defaultDelegate, width, height-2)
+	list.Title = "Organization: " + oq.Organization.Login
+	list.Styles.Title = titleStyle
+	list.SetStatusBarItemName("Repository", "Repositories")
+	list.SetShowHelp(false)
+	list.SetShowTitle(true)
+
+	m.repoList = list
+
+	m.repoModel.SelectRepo(m.Repositories[0], half(m.width), m.height)
+
+	m.getting = false
+}
+
 func (m *OrgModel) helpView() string {
 	if m.tabsHaveFocus {
 		return m.repoModel.help.View(m.repoModel.keys)
 	}
 
 	return m.help.View(m.keys)
-}
-
-func (m *OrgModel) getSelectedRepo() structs.RepositoryQuery {
-	return m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node
 }
 
 func (m OrgModel) Init() tea.Cmd {
@@ -76,10 +96,7 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case messages.RepoListMsg:
-		m.repoList = buildRepoListModel(msg.OrganizationQuery, m.width, m.height)
-		m.RepoQuery = msg.OrganizationQuery
-		m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
-		m.getting = false
+		m.Hydrate(msg.OrganizationQuery, m.width, m.height)
 		return m, nil
 
 	case tea.KeyMsg:
@@ -109,7 +126,7 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case tea.KeyUp.String(), tea.KeyDown.String():
 				m.repoList, cmd = m.repoList.Update(msg)
-				m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
+				m.repoModel.SelectRepo(m.Repositories[m.repoList.Index()], half(m.width), m.height)
 			default:
 				m.repoList, cmd = m.repoList.Update(msg)
 			}

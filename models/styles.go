@@ -6,8 +6,8 @@ import (
 )
 
 var (
-	pink = lipgloss.Color("#f72585")
-	// purple       = lipgloss.Color("#7209b7")
+	pink   = lipgloss.Color("#f72585")
+	purple = lipgloss.Color("#7209b7")
 	// purpleDarker = lipgloss.Color("#3a0ca3")
 	blue        = lipgloss.Color("#4361ee")
 	blueLighter = lipgloss.Color("#4cc9f0")
@@ -28,7 +28,7 @@ func buildDefaultDelegate() list.DefaultDelegate {
 	defaultDelegate := list.NewDefaultDelegate()
 	defaultDelegate.Styles.SelectedTitle.Foreground(pink)
 	defaultDelegate.Styles.SelectedTitle.BorderForeground(pink)
-	defaultDelegate.Styles.SelectedDesc.Foreground(pink).Faint(true)
+	defaultDelegate.Styles.SelectedDesc.Foreground(purple)
 	defaultDelegate.Styles.SelectedDesc.BorderForeground(pink)
 
 	return defaultDelegate

@@ -45,8 +45,14 @@ func (s Setting[T]) GetName() string {
 }
 
 type Repository struct {
+	Name         string
+	Url          string
+	SettingsTabs []SettingsTab
+}
+
+type SettingsTab struct {
 	Name     string
-	Settings map[string][]SettingGetter
+	Settings []SettingGetter
 }
 
 func NewRepository(rq RepositoryQuery) Repository {
@@ -54,63 +60,66 @@ func NewRepository(rq RepositoryQuery) Repository {
 
 	return Repository{
 		Name: rq.Name,
-		Settings: map[string][]SettingGetter{
-			"Overview": {
-				NewSetting("Private", rq.IsPrivate),
-				NewSetting("Template", rq.IsTemplate),
-				NewSetting("Archived", rq.IsArchived),
-				NewSetting("Disabled", rq.IsDisabled),
-				NewSetting("Fork", rq.IsFork),
-				NewSetting("Last updated", rq.UpdatedAt),
-				NewSetting("Stars", rq.StargazerCount),
-				NewSetting("Wiki", rq.HasWikiEnabled),
-				NewSetting("Issues", rq.HasIssuesEnabled),
-				NewSetting("Projects", rq.HasProjectsEnabled),
-				NewSetting("Discussions", rq.HasDiscussionsEnabled),
+		Url:  rq.Url,
+		SettingsTabs: []SettingsTab{
+			{
+				Name: "Overview",
+				Settings: []SettingGetter{
+					NewSetting("Private", rq.IsPrivate),
+					NewSetting("Template", rq.IsTemplate),
+					NewSetting("Archived", rq.IsArchived),
+					NewSetting("Disabled", rq.IsDisabled),
+					NewSetting("Fork", rq.IsFork),
+					NewSetting("Last updated", rq.UpdatedAt),
+					NewSetting("Stars", rq.StargazerCount),
+					NewSetting("Wiki", rq.HasWikiEnabled),
+					NewSetting("Issues", rq.HasIssuesEnabled),
+					NewSetting("Projects", rq.HasProjectsEnabled),
+					NewSetting("Discussions", rq.HasDiscussionsEnabled),
+				},
 			},
-			"Pull Requests": {
-				NewSetting("Allow merge commits", rq.MergeCommitAllowed),
-				NewSetting("Allow squash merging", rq.SquashMergeAllowed),
-				NewSetting("Allow rebase merging", rq.RebaseMergeAllowed),
-				NewSetting("Allow auto-merge", rq.AutoMergeAllowed),
-				NewSetting("Automatically delete head branches", rq.DeleteBranchOnMerge),
-				NewSetting("Open pull requests", rq.PullRequests.TotalCount),
+			{
+				Name: "Pull Requests",
+				Settings: []SettingGetter{
+					NewSetting("Allow merge commits", rq.MergeCommitAllowed),
+					NewSetting("Allow squash merging", rq.SquashMergeAllowed),
+					NewSetting("Allow rebase merging", rq.RebaseMergeAllowed),
+					NewSetting("Allow auto-merge", rq.AutoMergeAllowed),
+					NewSetting("Automatically delete head branches", rq.DeleteBranchOnMerge),
+					NewSetting("Open pull requests", rq.PullRequests.TotalCount),
+				},
 			},
-			"Default Branch": {
-				NewSetting("Name", rq.DefaultBranchRef.Name),
-				NewSetting("Require approving reviews", rule.RequiresApprovingReviews),
-				NewSetting("Number of approvals required", rule.RequiredApprovingReviewCount),
-				NewSetting("Dismiss stale requests", rule.DismissesStaleReviews),
-				NewSetting("Require review from Code Owners", rule.RequiresCodeOwnerReviews),
-				NewSetting("Restrict who can dismiss pull request reviews", rule.RestrictsReviewDismissals),
-				NewSetting("Require approval of the most recent reviewable push", rule.RequireLastPushApproval),
-				NewSetting("Require status checks to pass before merging", rule.RequiresStatusChecks),
-				NewSetting("Require conversation resolution before merging", rule.RequiresConversationResolution),
-				NewSetting("Requires signed commits", rule.RequiresCommitSignatures),
-				NewSetting("Require linear history", rule.RequiresLinearHistory),
-				NewSetting("Require deployments to succeed before merging", rule.RequiresDeployments),
-				NewSetting("Lock branch", rule.LockBranch),
-				NewSetting("Do not allow bypassing the above settings", rule.IsAdminEnforced),
-				NewSetting("Restrict who can push to matching branches", rule.RestrictsPushes),
-				NewSetting("Allow force pushes", rule.AllowsForcePushes),
-				NewSetting("Allow deletions", rule.AllowsDeletions),
+			{
+				Name: "Default Branch",
+				Settings: []SettingGetter{
+					NewSetting("Name", rq.DefaultBranchRef.Name),
+					NewSetting("Require approving reviews", rule.RequiresApprovingReviews),
+					NewSetting("Number of approvals required", rule.RequiredApprovingReviewCount),
+					NewSetting("Dismiss stale requests", rule.DismissesStaleReviews),
+					NewSetting("Require review from Code Owners", rule.RequiresCodeOwnerReviews),
+					NewSetting("Restrict who can dismiss pull request reviews", rule.RestrictsReviewDismissals),
+					NewSetting("Require approval of the most recent reviewable push", rule.RequireLastPushApproval),
+					NewSetting("Require status checks to pass before merging", rule.RequiresStatusChecks),
+					NewSetting("Require conversation resolution before merging", rule.RequiresConversationResolution),
+					NewSetting("Requires signed commits", rule.RequiresCommitSignatures),
+					NewSetting("Require linear history", rule.RequiresLinearHistory),
+					NewSetting("Require deployments to succeed before merging", rule.RequiresDeployments),
+					NewSetting("Lock branch", rule.LockBranch),
+					NewSetting("Do not allow bypassing the above settings", rule.IsAdminEnforced),
+					NewSetting("Restrict who can push to matching branches", rule.RestrictsPushes),
+					NewSetting("Allow force pushes", rule.AllowsForcePushes),
+					NewSetting("Allow deletions", rule.AllowsDeletions),
+				},
 			},
-			"Security": {
-				NewSetting("Vulnerability alerts enabled", rq.HasVulnerabilityAlertsEnabled),
-				NewSetting("Vulnerability alert count", rq.VulnerabilityAlerts.TotalCount),
+			{
+				Name: "Security",
+				Settings: []SettingGetter{
+					NewSetting("Vulnerability alerts enabled", rq.HasVulnerabilityAlertsEnabled),
+					NewSetting("Vulnerability alert count", rq.VulnerabilityAlerts.TotalCount),
+				},
 			},
 		},
 	}
-}
-
-func (r Repository) GetTabs() []string {
-	var tabs []string
-
-	for tab := range r.Settings {
-		tabs = append(tabs, tab)
-	}
-
-	return tabs
 }
 
 type Organization struct {
