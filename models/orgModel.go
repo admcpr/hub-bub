@@ -19,6 +19,7 @@ import (
 
 type OrgModel struct {
 	Title        string
+	Filters      []structs.RepositoryFilter
 	Repositories []structs.Repository
 
 	repoList  list.Model
@@ -48,7 +49,7 @@ func NewOrgModel(title string, width, height int) OrgModel {
 	}
 }
 
-func (m *OrgModel) Hydrate(oq structs.OrganizationQuery, width, height int) {
+func (m *OrgModel) UpdateRepositories(oq structs.OrganizationQuery) {
 	edges := oq.Organization.Repositories.Edges
 	m.Repositories = make([]structs.Repository, len(edges))
 	items := make([]list.Item, len(edges))
@@ -58,7 +59,7 @@ func (m *OrgModel) Hydrate(oq structs.OrganizationQuery, width, height int) {
 		items[i] = structs.NewListItem(repo.Name, repo.Url)
 	}
 
-	list := list.New(items, defaultDelegate, width, height-2)
+	list := list.New(items, defaultDelegate, m.width, m.height-2)
 	list.Title = "Organization: " + oq.Organization.Login
 	list.Styles.Title = titleStyle
 	list.SetStatusBarItemName("Repository", "Repositories")
@@ -96,7 +97,7 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case messages.RepoListMsg:
-		m.Hydrate(msg.OrganizationQuery, m.width, m.height)
+		m.UpdateRepositories(msg.OrganizationQuery)
 		return m, nil
 
 	case tea.KeyMsg:
@@ -165,7 +166,7 @@ func (m OrgModel) GetRepositories() tea.Msg {
 
 	variables := map[string]interface{}{
 		"login": graphql.String(m.Title),
-		"first": graphql.Int(30),
+		"first": graphql.Int(300),
 	}
 	err = client.Query("OrganizationRepositories", &organizationQuery, variables)
 	if err != nil {
@@ -173,21 +174,4 @@ func (m OrgModel) GetRepositories() tea.Msg {
 	}
 
 	return messages.RepoListMsg{OrganizationQuery: organizationQuery}
-}
-
-func buildRepoListModel(organizationQuery structs.OrganizationQuery, width, height int) list.Model {
-	edges := organizationQuery.Organization.Repositories.Edges
-	items := make([]list.Item, len(edges))
-	for i, repo := range edges {
-		items[i] = structs.NewListItem(repo.Node.Name, repo.Node.Url)
-	}
-
-	list := list.New(items, defaultDelegate, width, height-2)
-	list.Title = "Organization: " + organizationQuery.Organization.Login
-	list.Styles.Title = titleStyle
-	list.SetStatusBarItemName("Repository", "Repositories")
-	list.SetShowHelp(false)
-	list.SetShowTitle(true)
-
-	return list
 }
