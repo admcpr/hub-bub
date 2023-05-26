@@ -44,9 +44,32 @@ func NewOrgModel(title string, width, height int) OrgModel {
 		keys:      keyMaps.NewOrgKeyMap(),
 		repoModel: NewRepoModel(width/2, height),
 		repoList:  list.New([]list.Item{}, list.NewDefaultDelegate(), width/2, height),
+		Filters:   []structs.RepositoryFilter{},
 		getting:   true,
 		spinner:   spinner.New(spinner.WithSpinner(spinner.Pulse)),
 	}
+}
+
+func (m *OrgModel) FilteredRepositories() []structs.Repository {
+	if len(m.Filters) == 0 {
+		return m.Repositories
+	}
+	filteredRepos := []structs.Repository{}
+	// TODO: This is gonna get slow, fast, for big orgs. Faster pls.
+	for _, repo := range m.Repositories {
+		for _, filter := range m.Filters {
+			for _, tab := range repo.SettingsTabs {
+				if tab.Name == filter.Tab {
+					for _, setting := range tab.Settings {
+						if setting.GetName() == filter.Name && setting.GetValue() == filter.Value {
+							filteredRepos = append(filteredRepos, repo)
+						}
+					}
+				}
+			}
+		}
+	}
+	return filteredRepos
 }
 
 func (m *OrgModel) UpdateRepositories(oq structs.OrganizationQuery) {
@@ -59,8 +82,19 @@ func (m *OrgModel) UpdateRepositories(oq structs.OrganizationQuery) {
 		items[i] = structs.NewListItem(repo.Name, repo.Url)
 	}
 
+	m.UpdateRepoList()
+	m.getting = false
+}
+
+func (m *OrgModel) UpdateRepoList() {
+	filteredRepositories := m.FilteredRepositories()
+	items := make([]list.Item, len(filteredRepositories))
+	for i, repo := range m.FilteredRepositories() {
+		items[i] = structs.NewListItem(repo.Name, repo.Url)
+	}
+
 	list := list.New(items, defaultDelegate, m.width, m.height-2)
-	list.Title = "Organization: " + oq.Organization.Login
+	list.Title = "Organization: " + m.Title
 	list.Styles.Title = titleStyle
 	list.SetStatusBarItemName("Repository", "Repositories")
 	list.SetShowHelp(false)
@@ -69,8 +103,6 @@ func (m *OrgModel) UpdateRepositories(oq structs.OrganizationQuery) {
 	m.repoList = list
 
 	m.repoModel.SelectRepo(m.Repositories[0], half(m.width), m.height)
-
-	m.getting = false
 }
 
 func (m *OrgModel) helpView() string {
@@ -166,7 +198,7 @@ func (m OrgModel) GetRepositories() tea.Msg {
 
 	variables := map[string]interface{}{
 		"login": graphql.String(m.Title),
-		"first": graphql.Int(300),
+		"first": graphql.Int(100),
 	}
 	err = client.Query("OrganizationRepositories", &organizationQuery, variables)
 	if err != nil {
