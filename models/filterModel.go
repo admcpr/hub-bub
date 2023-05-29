@@ -20,6 +20,7 @@ func NewFilterModel(tab string, setting structs.SettingGetter) FilterModel {
 		textinput:        textinput.New(),
 	}
 	filterModel.textinput.Placeholder = setting.GetValue()
+	filterModel.textinput.Focus()
 	return filterModel
 }
 
