@@ -11,17 +11,19 @@ import (
 )
 
 type RepoModel struct {
-	repository structs.Repository
+	repository  structs.Repository
+	filterModel FilterModel // TODO:
 
 	settingsTable table.Model
 
 	help help.Model
 	keys keyMaps.RepoKeyMap
 
-	activeTab int
-	loaded    bool
-	width     int
-	height    int
+	activeTab        int
+	showFilterEditor bool
+	loaded           bool
+	width            int
+	height           int
 }
 
 func NewRepoModel(width, height int) RepoModel {
@@ -56,6 +58,17 @@ func (m *RepoModel) PreviousTab() {
 	m.settingsTable = NewSettingsTable(m.repository.SettingsTabs[m.activeTab].Settings, m.width)
 }
 
+func (m *RepoModel) ToggleFilterEditor() {
+	if !m.showFilterEditor {
+		tab := m.repository.SettingsTabs[m.activeTab]
+		index := m.settingsTable.Cursor()
+
+		m.filterModel = NewFilterModel(tab.Name, tab.Settings[index])
+	}
+
+	m.showFilterEditor = !m.showFilterEditor
+}
+
 func (m RepoModel) Update(msg tea.Msg) (RepoModel, tea.Cmd) {
 	var cmd tea.Cmd
 
@@ -71,6 +84,8 @@ func (m RepoModel) Update(msg tea.Msg) (RepoModel, tea.Cmd) {
 			m.settingsTable.MoveDown(1)
 		case tea.KeyUp:
 			m.settingsTable.MoveUp(1)
+		case tea.KeyEsc:
+			m.showFilterEditor = false
 		}
 	}
 
@@ -87,9 +102,13 @@ func (m RepoModel) View() string {
 		BorderForeground(blueLighter).Padding(0).Margin(0)
 
 	var tabs = RenderTabs(m.repository.SettingsTabs, m.width, m.activeTab)
-	var settings = settingsStyle.Width(m.width - 2).Height(m.height - 7).Render(m.settingsTable.View())
-
-	return lipgloss.JoinVertical(lipgloss.Left, tabs, settings)
+	if m.showFilterEditor {
+		filter := lipgloss.NewStyle().Width(m.width - 2).Height(m.height - 7).Render(m.filterModel.View())
+		return lipgloss.JoinVertical(lipgloss.Left, tabs, filter)
+	} else {
+		settings := settingsStyle.Width(m.width - 2).Height(m.height - 7).Render(m.settingsTable.View())
+		return lipgloss.JoinVertical(lipgloss.Left, tabs, settings)
+	}
 }
 
 func NewSettingsTable(activeSettings []structs.SettingGetter, width int) table.Model {

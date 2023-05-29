@@ -2,6 +2,7 @@ package structs
 
 import (
 	"fmt"
+	"reflect"
 	"time"
 )
 
@@ -12,15 +13,17 @@ type SettingValue interface {
 type SettingGetter interface {
 	GetName() string
 	GetValue() string
+	GetType() reflect.Type
 }
 
 type Setting[T SettingValue] struct {
 	Name  string
 	Value T
+	Type  reflect.Type
 }
 
 func NewSetting[T SettingValue](name string, value T) Setting[T] {
-	return Setting[T]{Name: name, Value: value}
+	return Setting[T]{Name: name, Value: value, Type: reflect.TypeOf(value)}
 }
 
 func (s Setting[T]) GetValue() string {
@@ -42,6 +45,10 @@ func (s Setting[T]) GetValue() string {
 
 func (s Setting[T]) GetName() string {
 	return s.Name
+}
+
+func (s Setting[T]) GetType() reflect.Type {
+	return s.Type
 }
 
 type Repository struct {

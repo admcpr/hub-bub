@@ -61,7 +61,7 @@ func (m *OrgModel) FilteredRepositories() []structs.Repository {
 			for _, tab := range repo.SettingsTabs {
 				if tab.Name == filter.Tab {
 					for _, setting := range tab.Settings {
-						if setting.GetName() == filter.Name && setting.GetValue() == filter.Value {
+						if setting.GetName() == filter.SettingGetter.GetName() && setting.GetValue() == filter.SettingGetter.GetValue() {
 							filteredRepos = append(filteredRepos, repo)
 						}
 					}
@@ -142,6 +142,8 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.repoModel.NextTab()
 			case tea.KeyLeft:
 				m.repoModel.PreviousTab()
+			case tea.KeyEnter:
+				m.repoModel.ToggleFilterEditor()
 			}
 			m.repoModel, cmd = m.repoModel.Update(msg)
 		} else {

@@ -63,3 +63,26 @@ func TestOrgModel_NewOrgModel(t *testing.T) {
 		})
 	}
 }
+
+// func TestOrgModel_FilteredRepositories(t *testing.T) {
+// 	repositories := []structs.Repository{
+// 		structs.Repository{ Name: "name", Url: "url", SettingsTabs: []structs.SettingsTab{ structs.SettingsTab{ Name: "name", Settings: []structs.Setting{
+// 			structs.Setting{ Name: "name", Value: "value", Type: "type", Description: "description", Url: "url" },
+// 		} } } },
+// 	OrgModel := NewOrgModel("admcpr", 100, 100)
+
+// 	tests := []struct {
+// 		name string
+// 		m    *OrgModel
+// 		want []structs.Repository
+// 	}{
+// 		"No filter"
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			if got := tt.m.FilteredRepositories(); !reflect.DeepEqual(got, tt.want) {
+// 				t.Errorf("OrgModel.FilteredRepositories() = %v, want %v", got, tt.want)
+// 			}
+// 		})
+// 	}
+// }
