@@ -138,10 +138,6 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case tea.KeyEsc:
 				m.tabsHaveFocus = false
 				return m, nil
-			case tea.KeyRight:
-				m.repoModel.NextTab()
-			case tea.KeyLeft:
-				m.repoModel.PreviousTab()
 			case tea.KeyEnter:
 				m.repoModel.ToggleFilterEditor()
 			}
@@ -166,10 +162,10 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.repoList, cmd = m.repoList.Update(msg)
 			}
 		}
+	}
 
-	default:
+	if m.getting {
 		m.spinner, cmd = m.spinner.Update(msg)
-		return m, cmd
 	}
 
 	return m, cmd

@@ -22,6 +22,7 @@ type RepoModel struct {
 	activeTab        int
 	showFilterEditor bool
 	loaded           bool
+	hasFocus         bool
 	width            int
 	height           int
 }
@@ -36,6 +37,14 @@ func NewRepoModel(width, height int) RepoModel {
 	}
 }
 
+func (m RepoModel) HasFocus() bool {
+	return m.hasFocus
+}
+
+func (m *RepoModel) ToggleFocus() {
+	m.hasFocus = !m.hasFocus
+}
+
 func (m RepoModel) Init() tea.Cmd {
 	return nil
 }
@@ -48,13 +57,8 @@ func (m *RepoModel) SelectRepo(repository structs.Repository, width, height int)
 	m.height = height
 }
 
-func (m *RepoModel) NextTab() {
-	m.activeTab = min(m.activeTab+1, len(m.repository.SettingsTabs)-1)
-	m.settingsTable = NewSettingsTable(m.repository.SettingsTabs[m.activeTab].Settings, m.width)
-}
-
-func (m *RepoModel) PreviousTab() {
-	m.activeTab = max(m.activeTab-1, 0)
+func (m *RepoModel) SelectTab(index int) {
+	m.activeTab = index
 	m.settingsTable = NewSettingsTable(m.repository.SettingsTabs[m.activeTab].Settings, m.width)
 }
 
@@ -80,6 +84,10 @@ func (m RepoModel) Update(msg tea.Msg) (RepoModel, tea.Cmd) {
 		return m, nil
 	case tea.KeyMsg:
 		switch msg.Type {
+		case tea.KeyRight:
+			m.SelectTab(min(m.activeTab+1, len(m.repository.SettingsTabs)-1))
+		case tea.KeyLeft:
+			m.SelectTab(max(m.activeTab-1, 0))
 		case tea.KeyDown:
 			m.settingsTable.MoveDown(1)
 		case tea.KeyUp:
@@ -88,6 +96,8 @@ func (m RepoModel) Update(msg tea.Msg) (RepoModel, tea.Cmd) {
 			m.showFilterEditor = false
 		}
 	}
+
+	m.filterModel, cmd = m.filterModel.Update(msg)
 
 	return m, cmd
 }
