@@ -25,11 +25,26 @@ func NewFilterBooleanModel(title string, value bool) FilterBooleanModel {
 }
 
 func (m FilterBooleanModel) Init() tea.Cmd {
-	return m.Focus()
+	return textinput.Blink
 }
 
 func (m FilterBooleanModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	return m, nil
+	var cmd tea.Cmd
+
+	switch msg := msg.(type) {
+
+	case tea.KeyMsg:
+		switch msg.String() {
+		case tea.KeyEnter.String():
+			m.input.Blur()
+		case "y", "Y":
+			m.input.SetValue("Yes")
+		case "n", "N":
+			m.input.SetValue("No")
+		}
+	}
+
+	return m, cmd
 }
 
 func (m FilterBooleanModel) View() string {
