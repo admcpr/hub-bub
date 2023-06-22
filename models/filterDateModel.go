@@ -18,7 +18,7 @@ type FilterDateModel struct {
 
 func dateValidator(s, prompt string) error {
 
-	errMsg := fmt.Errorf("please enter a YYYY-MM-DD for `%s` value", prompt)
+	errMsg := fmt.Errorf("please enter a YYYY-MM-DD date for `%s`", prompt)
 
 	// Can't be longer than 10 characters
 	if len(s) > 10 {
@@ -53,12 +53,12 @@ func NewFilterDateModel(title string, from, to time.Time) FilterDateModel {
 	}
 
 	m.fromInput.Placeholder = from.Format("2006-01-02")
-	m.fromInput.Prompt = "From: "
+	m.fromInput.Prompt = "From:"
 	m.fromInput.CharLimit = 10
 	m.fromInput.Validate = func(s string) error { return dateValidator(s, m.fromInput.Prompt) }
 
 	m.toInput.Placeholder = to.Format("2006-01-02")
-	m.toInput.Prompt = "To: "
+	m.toInput.Prompt = "To:"
 	m.toInput.CharLimit = 10
 	m.toInput.Validate = func(s string) error { return dateValidator(s, m.toInput.Prompt) }
 
@@ -99,15 +99,33 @@ func (m FilterDateModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m FilterDateModel) View() string {
-	return m.Title + " " + m.fromInput.View() + " " + m.toInput.View()
+	errorText := ""
+	if m.fromInput.Err != nil {
+		errorText = "\n" + errorStyle.Render(m.fromInput.Err.Error())
+	}
+	if m.toInput.Err != nil {
+		errorText = "\n" + errorStyle.Render(m.toInput.Err.Error())
+	}
+	return m.Title + " " + m.fromInput.View() + " " + m.toInput.View() + errorText
 }
 
 func (m *FilterDateModel) Focus() tea.Cmd {
 	return m.fromInput.Focus()
 }
 
-func (m *FilterDateModel) GetValue() (time.Time, time.Time) {
+func (m *FilterDateModel) GetValue() (time.Time, time.Time, error) {
+	fromError := m.fromInput.Validate(m.fromInput.Value())
+	if fromError != nil {
+		return time.Time{}, time.Time{}, fromError
+	}
+
+	toError := m.toInput.Validate(m.toInput.Value())
+	if toError != nil {
+		return time.Time{}, time.Time{}, toError
+	}
+
 	from, _ := time.Parse("2006-01-02", m.fromInput.Value())
 	to, _ := time.Parse("2006-01-02", m.toInput.Value())
-	return from, to
+
+	return from, to, nil
 }
