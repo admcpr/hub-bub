@@ -11,49 +11,66 @@ import (
 )
 
 type RepoModel struct {
-	repoSettingsTabs []structs.RepositorySettingsTab
+	repository  structs.Repository
+	filterModel FilterModel // TODO:
 
 	settingsTable table.Model
 
 	help help.Model
 	keys keyMaps.RepoKeyMap
 
-	activeTab int
-	loaded    bool
-	width     int
-	height    int
+	activeTab        int
+	showFilterEditor bool
+	loaded           bool
+	hasFocus         bool
+	width            int
+	height           int
 }
 
 func NewRepoModel(width, height int) RepoModel {
 	return RepoModel{
-		repoSettingsTabs: []structs.RepositorySettingsTab{},
-		width:            width,
-		height:           height,
-		help:             help.New(),
-		keys:             keyMaps.NewRepoKeyMap(),
+		repository: structs.Repository{},
+		width:      width,
+		height:     height,
+		help:       help.New(),
+		keys:       keyMaps.NewRepoKeyMap(),
 	}
+}
+
+func (m RepoModel) HasFocus() bool {
+	return m.hasFocus
+}
+
+func (m *RepoModel) ToggleFocus() {
+	m.hasFocus = !m.hasFocus
 }
 
 func (m RepoModel) Init() tea.Cmd {
 	return nil
 }
 
-func (m *RepoModel) SelectRepo(RepositoryQuery structs.RepositoryQuery, width, height int) {
-	m.repoSettingsTabs = structs.BuildRepoSettings(RepositoryQuery)
-	m.settingsTable = NewSettingsTable(m.repoSettingsTabs[m.activeTab], width)
+func (m *RepoModel) SelectRepo(repository structs.Repository, width, height int) {
+	m.repository = repository
+	m.settingsTable = NewSettingsTable(m.repository.SettingsTabs[m.activeTab].Settings, width)
 
 	m.width = width
 	m.height = height
 }
 
-func (m *RepoModel) NextTab() {
-	m.activeTab = min(m.activeTab+1, len(m.repoSettingsTabs)-1)
-	m.settingsTable = NewSettingsTable(m.repoSettingsTabs[m.activeTab], m.width)
+func (m *RepoModel) SelectTab(index int) {
+	m.activeTab = index
+	m.settingsTable = NewSettingsTable(m.repository.SettingsTabs[m.activeTab].Settings, m.width)
 }
 
-func (m *RepoModel) PreviousTab() {
-	m.activeTab = max(m.activeTab-1, 0)
-	m.settingsTable = NewSettingsTable(m.repoSettingsTabs[m.activeTab], m.width)
+func (m *RepoModel) ToggleFilterEditor() {
+	if !m.showFilterEditor {
+		tab := m.repository.SettingsTabs[m.activeTab]
+		index := m.settingsTable.Cursor()
+
+		m.filterModel = NewFilterModel(tab.Name, tab.Settings[index])
+	}
+
+	m.showFilterEditor = !m.showFilterEditor
 }
 
 func (m RepoModel) Update(msg tea.Msg) (RepoModel, tea.Cmd) {
@@ -67,31 +84,44 @@ func (m RepoModel) Update(msg tea.Msg) (RepoModel, tea.Cmd) {
 		return m, nil
 	case tea.KeyMsg:
 		switch msg.Type {
+		case tea.KeyRight:
+			m.SelectTab(min(m.activeTab+1, len(m.repository.SettingsTabs)-1))
+		case tea.KeyLeft:
+			m.SelectTab(max(m.activeTab-1, 0))
 		case tea.KeyDown:
 			m.settingsTable.MoveDown(1)
 		case tea.KeyUp:
 			m.settingsTable.MoveUp(1)
+		case tea.KeyEsc:
+			m.showFilterEditor = false
 		}
 	}
+
+	m.filterModel, cmd = m.filterModel.Update(msg)
 
 	return m, cmd
 }
 
 func (m RepoModel) View() string {
-	if m.repoSettingsTabs == nil || len(m.repoSettingsTabs) == 0 {
+	if m.repository.SettingsTabs == nil || len(m.repository.SettingsTabs) == 0 {
+		// Can this ever happen ????
 		return ""
 	}
 
 	settingsStyle := appStyle.Copy().Border(settingsBorder()).
 		BorderForeground(blueLighter).Padding(0).Margin(0)
 
-	var tabs = RenderTabs(m.repoSettingsTabs, m.width, m.activeTab)
-	var settings = settingsStyle.Width(m.width - 2).Height(m.height - 7).Render(m.settingsTable.View())
-
-	return lipgloss.JoinVertical(lipgloss.Left, tabs, settings)
+	var tabs = RenderTabs(m.repository.SettingsTabs, m.width, m.activeTab)
+	if m.showFilterEditor {
+		filter := lipgloss.NewStyle().Width(m.width - 2).Height(m.height - 7).Render(m.filterModel.View())
+		return lipgloss.JoinVertical(lipgloss.Left, tabs, filter)
+	} else {
+		settings := settingsStyle.Width(m.width - 2).Height(m.height - 7).Render(m.settingsTable.View())
+		return lipgloss.JoinVertical(lipgloss.Left, tabs, settings)
+	}
 }
 
-func NewSettingsTable(activeSettings structs.RepositorySettingsTab, width int) table.Model {
+func NewSettingsTable(activeSettings []structs.SettingGetter, width int) table.Model {
 	widthWithoutBorder := width - 2
 	quarterWidth := quarter(widthWithoutBorder)
 
@@ -99,9 +129,9 @@ func NewSettingsTable(activeSettings structs.RepositorySettingsTab, width int) t
 		{Title: "Setting", Width: (widthWithoutBorder - quarterWidth)},
 		{Title: "Value", Width: quarterWidth}}
 
-	rows := make([]table.Row, len(activeSettings.Settings))
-	for i, setting := range activeSettings.Settings {
-		rows[i] = table.Row{setting.Name, setting.Value}
+	rows := make([]table.Row, len(activeSettings))
+	for i, setting := range activeSettings {
+		rows[i] = table.Row{setting.GetName(), setting.GetValue()}
 	}
 
 	return table.New(table.WithColumns(columns),
@@ -110,7 +140,7 @@ func NewSettingsTable(activeSettings structs.RepositorySettingsTab, width int) t
 
 func GetTableStyles() table.Styles {
 	return table.Styles{
-		Selected: lipgloss.NewStyle().Bold(true).Foreground(pink),
+		Selected: lipgloss.NewStyle().Bold(true).Background(pink),
 		Header: lipgloss.NewStyle().Bold(true).Foreground(blue).BorderStyle(lipgloss.NormalBorder()).
 			BorderBottom(true).BorderForeground(blueLighter),
 		Cell: lipgloss.NewStyle().Padding(0),

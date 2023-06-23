@@ -6,7 +6,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func RenderTabs(tabSettings []structs.RepositorySettingsTab, width, activeTab int) string {
+func RenderTabs(tabSettings []structs.SettingsTab, width, activeTab int) string {
 	inactiveTabBorder := tabBorderWithBottom("┴", "─", "┴")
 	activeTabBorder := tabBorderWithBottom("┘", " ", "└")
 	inactiveTabStyle := lipgloss.NewStyle().Border(inactiveTabBorder, true).BorderForeground(blueLighter).Padding(0)

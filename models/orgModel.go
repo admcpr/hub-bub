@@ -18,8 +18,9 @@ import (
 )
 
 type OrgModel struct {
-	Title     string
-	RepoQuery structs.OrganizationQuery
+	Title        string
+	Filters      []structs.RepositoryFilter
+	Repositories []structs.Repository
 
 	repoList  list.Model
 	repoModel RepoModel
@@ -43,9 +44,65 @@ func NewOrgModel(title string, width, height int) OrgModel {
 		keys:      keyMaps.NewOrgKeyMap(),
 		repoModel: NewRepoModel(width/2, height),
 		repoList:  list.New([]list.Item{}, list.NewDefaultDelegate(), width/2, height),
+		Filters:   []structs.RepositoryFilter{},
 		getting:   true,
 		spinner:   spinner.New(spinner.WithSpinner(spinner.Pulse)),
 	}
+}
+
+func (m *OrgModel) FilteredRepositories() []structs.Repository {
+	if len(m.Filters) == 0 {
+		return m.Repositories
+	}
+	filteredRepos := []structs.Repository{}
+	// TODO: This is gonna get slow, fast, for big orgs. Faster pls.
+	for _, repo := range m.Repositories {
+		for _, filter := range m.Filters {
+			for _, tab := range repo.SettingsTabs {
+				if tab.Name == filter.Tab {
+					for _, setting := range tab.Settings {
+						if setting.GetName() == filter.SettingGetter.GetName() && setting.GetValue() == filter.SettingGetter.GetValue() {
+							filteredRepos = append(filteredRepos, repo)
+						}
+					}
+				}
+			}
+		}
+	}
+	return filteredRepos
+}
+
+func (m *OrgModel) UpdateRepositories(oq structs.OrganizationQuery) {
+	edges := oq.Organization.Repositories.Edges
+	m.Repositories = make([]structs.Repository, len(edges))
+	items := make([]list.Item, len(edges))
+	for i, repoQuery := range edges {
+		repo := structs.NewRepository(repoQuery.Node)
+		m.Repositories[i] = repo
+		items[i] = structs.NewListItem(repo.Name, repo.Url)
+	}
+
+	m.UpdateRepoList()
+	m.getting = false
+}
+
+func (m *OrgModel) UpdateRepoList() {
+	filteredRepositories := m.FilteredRepositories()
+	items := make([]list.Item, len(filteredRepositories))
+	for i, repo := range m.FilteredRepositories() {
+		items[i] = structs.NewListItem(repo.Name, repo.Url)
+	}
+
+	list := list.New(items, defaultDelegate, m.width, m.height-2)
+	list.Title = "Organization: " + m.Title
+	list.Styles.Title = titleStyle
+	list.SetStatusBarItemName("Repository", "Repositories")
+	list.SetShowHelp(false)
+	list.SetShowTitle(true)
+
+	m.repoList = list
+
+	m.repoModel.SelectRepo(m.Repositories[0], half(m.width), m.height)
 }
 
 func (m *OrgModel) helpView() string {
@@ -54,10 +111,6 @@ func (m *OrgModel) helpView() string {
 	}
 
 	return m.help.View(m.keys)
-}
-
-func (m *OrgModel) getSelectedRepo() structs.RepositoryQuery {
-	return m.RepoQuery.Organization.Repositories.Edges[m.repoList.Index()].Node
 }
 
 func (m OrgModel) Init() tea.Cmd {
@@ -76,10 +129,7 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case messages.RepoListMsg:
-		m.repoList = buildRepoListModel(msg.OrganizationQuery, m.width, m.height)
-		m.RepoQuery = msg.OrganizationQuery
-		m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
-		m.getting = false
+		m.UpdateRepositories(msg.OrganizationQuery)
 		return m, nil
 
 	case tea.KeyMsg:
@@ -88,10 +138,8 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case tea.KeyEsc:
 				m.tabsHaveFocus = false
 				return m, nil
-			case tea.KeyRight:
-				m.repoModel.NextTab()
-			case tea.KeyLeft:
-				m.repoModel.PreviousTab()
+			case tea.KeyEnter:
+				m.repoModel.ToggleFilterEditor()
 			}
 			m.repoModel, cmd = m.repoModel.Update(msg)
 		} else {
@@ -109,15 +157,15 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			case tea.KeyUp.String(), tea.KeyDown.String():
 				m.repoList, cmd = m.repoList.Update(msg)
-				m.repoModel.SelectRepo(m.getSelectedRepo(), half(m.width), m.height)
+				m.repoModel.SelectRepo(m.Repositories[m.repoList.Index()], half(m.width), m.height)
 			default:
 				m.repoList, cmd = m.repoList.Update(msg)
 			}
 		}
+	}
 
-	default:
+	if m.getting {
 		m.spinner, cmd = m.spinner.Update(msg)
-		return m, cmd
 	}
 
 	return m, cmd
@@ -148,7 +196,7 @@ func (m OrgModel) GetRepositories() tea.Msg {
 
 	variables := map[string]interface{}{
 		"login": graphql.String(m.Title),
-		"first": graphql.Int(30),
+		"first": graphql.Int(100),
 	}
 	err = client.Query("OrganizationRepositories", &organizationQuery, variables)
 	if err != nil {
@@ -156,21 +204,4 @@ func (m OrgModel) GetRepositories() tea.Msg {
 	}
 
 	return messages.RepoListMsg{OrganizationQuery: organizationQuery}
-}
-
-func buildRepoListModel(organizationQuery structs.OrganizationQuery, width, height int) list.Model {
-	edges := organizationQuery.Organization.Repositories.Edges
-	items := make([]list.Item, len(edges))
-	for i, repo := range edges {
-		items[i] = structs.NewListItem(repo.Node.Name, repo.Node.Url)
-	}
-
-	list := list.New(items, defaultDelegate, width, height-2)
-	list.Title = "Organization: " + organizationQuery.Organization.Login
-	list.Styles.Title = titleStyle
-	list.SetStatusBarItemName("Repository", "Repositories")
-	list.SetShowHelp(false)
-	list.SetShowTitle(true)
-
-	return list
 }
