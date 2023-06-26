@@ -15,7 +15,7 @@ type RepositoryFilterAction int
 // there must be a better way to do this
 const (
 	AddAction RepositoryFilterAction = iota
-	RemoveAction
+	DeleteAction
 	UpdateAction
 	ClearAllAction
 	CancelAction

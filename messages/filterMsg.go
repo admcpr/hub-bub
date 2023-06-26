@@ -1,8 +1,12 @@
 package messages
 
-import "hub-bub/structs"
+import (
+	"hub-bub/structs"
+	"reflect"
+)
 
 type FilterMsg struct {
-	Filter structs.SettingGetter
+	Filter interface{}
 	Action structs.RepositoryFilterAction
+	Type   reflect.Type
 }

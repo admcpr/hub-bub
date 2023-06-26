@@ -10,6 +10,13 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+type FilterBool struct {
+	Tab       string
+	Name      string
+	fromValue time.Time
+	toValue   time.Time
+}
+
 type FilterDateModel struct {
 	Title     string
 	fromInput textinput.Model

@@ -2,11 +2,19 @@ package models
 
 import (
 	"fmt"
+	"hub-bub/messages"
 	"strconv"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
+
+type FilterNumber struct {
+	Tab       string
+	Name      string
+	fromValue int
+	toValue   int
+}
 
 type FilterNumberModel struct {
 	Title     string
@@ -56,14 +64,10 @@ func (m FilterNumberModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch msg.String() {
+		case tea.KeyEsc.String():
+			return m, m.Cancel
 		case tea.KeyTab.String():
-			if m.fromInput.Focused() {
-				m.fromInput.Blur()
-				m.toInput.Focus()
-			} else {
-				m.toInput.Blur()
-				m.fromInput.Focus()
-			}
+			m.toggleInputFocus()
 		default:
 			if m.fromInput.Focused() {
 				m.fromInput, cmd = m.fromInput.Update(msg)
@@ -76,6 +80,16 @@ func (m FilterNumberModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
+func (m FilterNumberModel) toggleInputFocus() {
+	if m.fromInput.Focused() {
+		m.fromInput.Blur()
+		m.toInput.Focus()
+	} else {
+		m.toInput.Blur()
+		m.fromInput.Focus()
+	}
+}
+
 func (m FilterNumberModel) View() string {
 	return m.Title + " " + m.fromInput.View() + " " + m.toInput.View()
 }
@@ -84,4 +98,8 @@ func (m *FilterNumberModel) GetValue() (int, int) {
 	from, _ := strconv.Atoi(m.fromInput.Value())
 	to, _ := strconv.Atoi(m.toInput.Value())
 	return from, to
+}
+
+func (m FilterNumberModel) Cancel() tea.Msg {
+	return messages.FilterCancelMsg{FilterName: m.Title}
 }
