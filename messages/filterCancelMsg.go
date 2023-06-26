@@ -1,5 +1,6 @@
 package messages
 
 type FilterCancelMsg struct {
-	FilterName string
+	Tab  string
+	NAme string
 }

@@ -61,7 +61,7 @@ func (m *OrgModel) FilteredRepositories() []structs.Repository {
 			for _, tab := range repo.SettingsTabs {
 				if tab.Name == filter.Tab {
 					for _, setting := range tab.Settings {
-						if setting.GetName() == filter.SettingGetter.GetName() && setting.GetValue() == filter.SettingGetter.GetValue() {
+						if setting.Name == filter.Setting.Name && setting.String() == filter.Setting.String() {
 							filteredRepos = append(filteredRepos, repo)
 						}
 					}

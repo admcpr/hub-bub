@@ -1,5 +1,6 @@
 package messages
 
 type FilterDeleteMsg struct {
-	FilterName string
+	Tab  string
+	Name string
 }

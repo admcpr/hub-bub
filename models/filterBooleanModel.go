@@ -8,19 +8,15 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type FilterBool struct {
-	Tab   string
-	Name  string
-	Value bool
-}
-
 type FilterBooleanModel struct {
+	Tab   string
 	Title string
 	input textinput.Model
 }
 
-func NewFilterBooleanModel(title string, value bool) FilterBooleanModel {
+func NewFilterBooleanModel(tab, title string, value bool) FilterBooleanModel {
 	m := FilterBooleanModel{
+		Tab:   tab,
 		Title: title,
 		input: textinput.New(),
 	}
@@ -69,14 +65,11 @@ func (m *FilterBooleanModel) Focus() tea.Cmd {
 }
 
 func (m FilterBooleanModel) Cancel() tea.Msg {
-	return messages.FilterCancelMsg{FilterName: m.Title}
+	return messages.FilterCancelMsg{Tab: m.Tab, NAme: m.Title}
 }
 
 func (m FilterBooleanModel) Confirm() tea.Msg {
-	filter := structs.Filter{Title: m.Title, Value: m.GetValue()}
-	msg := messages.FilterMsg{FilterName: m.Title, Action: structs.ConfirmAction}
-}
-
-func (m FilterBooleanModel) SendMsg(action string) tea.Msg {
-	return messages.FilterMsg{FilterName: m.Title, Action: action}
+	return messages.FilterBoolMsg{
+		Filter: structs.FilterBool{Tab: m.Tab, Name: m.Title, Value: m.GetValue()},
+	}
 }

@@ -6,30 +6,32 @@ import (
 	"time"
 )
 
-type SettingValue interface {
-	bool | string | time.Time | int
-}
+// type SettingValue interface {
+// 	bool | string | time.Time | int
+// }
 
-type SettingGetter interface {
-	GetName() string
-	GetValue() string
-	GetType() reflect.Type
-}
+// type SettingGetter interface {
+// 	GetName() string
+// 	String() string
+// 	GetType() reflect.Type
+// }
 
-type Setting[T SettingValue] struct {
+// type Setting[T SettingValue] struct {
+// 	Name  string
+// 	Value T
+// 	Type  reflect.Type
+// }
+
+type Setting struct {
 	Name  string
-	Value T
+	Value interface{}
 	Type  reflect.Type
 }
 
-func NewSetting[T SettingValue](name string, value T) Setting[T] {
-	return Setting[T]{Name: name, Value: value, Type: reflect.TypeOf(value)}
-}
-
-func (s Setting[T]) GetValue() string {
+func (s Setting) String() string {
 	formattedValue := ""
 
-	switch value := any(s.Value).(type) {
+	switch value := s.Value.(type) {
 	case bool:
 		formattedValue = YesNo(value)
 	case string:
@@ -43,13 +45,38 @@ func (s Setting[T]) GetValue() string {
 	return formattedValue
 }
 
-func (s Setting[T]) GetName() string {
-	return s.Name
+func NewSetting(name string, value interface{}) Setting {
+	return Setting{Name: name, Value: value, Type: reflect.TypeOf(value)}
 }
 
-func (s Setting[T]) GetType() reflect.Type {
-	return s.Type
-}
+// func NewSetting[T SettingValue](name string, value T) Setting[T] {
+// 	return Setting[T]{Name: name, Value: value, Type: reflect.TypeOf(value)}
+// }
+
+// func (s Setting[T]) String() string {
+// 	formattedValue := ""
+
+// 	switch value := any(s.Value).(type) {
+// 	case bool:
+// 		formattedValue = YesNo(value)
+// 	case string:
+// 		formattedValue = value
+// 	case time.Time:
+// 		formattedValue = value.Format("2006/01/02")
+// 	case int:
+// 		formattedValue = fmt.Sprint(value)
+// 	}
+
+// 	return formattedValue
+// }
+
+// func (s Setting[T]) GetName() string {
+// 	return s.Name
+// }
+
+// func (s Setting[T]) GetType() reflect.Type {
+// 	return s.Type
+// }
 
 type Repository struct {
 	Name         string
@@ -59,7 +86,7 @@ type Repository struct {
 
 type SettingsTab struct {
 	Name     string
-	Settings []SettingGetter
+	Settings []Setting
 }
 
 func NewRepository(rq RepositoryQuery) Repository {
@@ -71,7 +98,7 @@ func NewRepository(rq RepositoryQuery) Repository {
 		SettingsTabs: []SettingsTab{
 			{
 				Name: "Overview",
-				Settings: []SettingGetter{
+				Settings: []Setting{
 					NewSetting("Private", rq.IsPrivate),
 					NewSetting("Template", rq.IsTemplate),
 					NewSetting("Archived", rq.IsArchived),
@@ -87,7 +114,7 @@ func NewRepository(rq RepositoryQuery) Repository {
 			},
 			{
 				Name: "Pull Requests",
-				Settings: []SettingGetter{
+				Settings: []Setting{
 					NewSetting("Allow merge commits", rq.MergeCommitAllowed),
 					NewSetting("Allow squash merging", rq.SquashMergeAllowed),
 					NewSetting("Allow rebase merging", rq.RebaseMergeAllowed),
@@ -98,7 +125,7 @@ func NewRepository(rq RepositoryQuery) Repository {
 			},
 			{
 				Name: "Default Branch",
-				Settings: []SettingGetter{
+				Settings: []Setting{
 					NewSetting("Name", rq.DefaultBranchRef.Name),
 					NewSetting("Require approving reviews", rule.RequiresApprovingReviews),
 					NewSetting("Number of approvals required", rule.RequiredApprovingReviewCount),
@@ -120,7 +147,7 @@ func NewRepository(rq RepositoryQuery) Repository {
 			},
 			{
 				Name: "Security",
-				Settings: []SettingGetter{
+				Settings: []Setting{
 					NewSetting("Vulnerability alerts enabled", rq.HasVulnerabilityAlertsEnabled),
 					NewSetting("Vulnerability alert count", rq.VulnerabilityAlerts.TotalCount),
 				},

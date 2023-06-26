@@ -3,20 +3,15 @@ package models
 import (
 	"fmt"
 	"hub-bub/messages"
+	"hub-bub/structs"
 	"strconv"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type FilterNumber struct {
-	Tab       string
-	Name      string
-	fromValue int
-	toValue   int
-}
-
 type FilterNumberModel struct {
+	Tab       string
 	Title     string
 	fromInput textinput.Model
 	toInput   textinput.Model
@@ -31,8 +26,9 @@ func numberValidator(s, prompt string) error {
 	return nil
 }
 
-func NewFilterNumberModel(title string, from, to int) FilterNumberModel {
+func NewFilterNumberModel(tab, title string, from, to int) FilterNumberModel {
 	m := FilterNumberModel{
+		Tab:       tab,
 		Title:     title,
 		fromInput: textinput.New(),
 		toInput:   textinput.New(),
@@ -101,5 +97,13 @@ func (m *FilterNumberModel) GetValue() (int, int) {
 }
 
 func (m FilterNumberModel) Cancel() tea.Msg {
-	return messages.FilterCancelMsg{FilterName: m.Title}
+	return messages.FilterCancelMsg{Tab: m.Tab, NAme: m.Title}
+}
+
+func (m FilterNumberModel) Confirm() tea.Msg {
+	from, to := m.GetValue()
+
+	return messages.FilterNumberMsg{
+		Filter: structs.FilterNumber{Tab: m.Tab, Name: m.Title, From: from, To: to},
+	}
 }

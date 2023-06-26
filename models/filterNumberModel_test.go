@@ -9,20 +9,22 @@ import (
 
 func TestNewFilterNumberModel(t *testing.T) {
 	tests := []struct {
+		tab   string
 		title string
 		from  int
 		to    int
 	}{
-		{"Test 1", 0, 10},
-		{"Test 2", -5, 5},
-		{"Test 3", 100, 200},
-		{"Test 4", -100, 0},
+		{"Tab", "Test 1", 0, 10},
+		{"Tab", "Test 2", -5, 5},
+		{"Tab", "Test 3", 100, 200},
+		{"Tab", "Test 4", -100, 0},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
-			m := NewFilterNumberModel(tt.title, tt.from, tt.to)
+			m := NewFilterNumberModel(tt.tab, tt.title, tt.from, tt.to)
 
+			assert.Equal(t, m.Tab, tt.tab)
 			assert.Equal(t, m.Title, tt.title)
 			assert.Equal(t, m.fromInput.Placeholder, fmt.Sprint(tt.from))
 			assert.Equal(t, m.toInput.Placeholder, fmt.Sprint(tt.to))

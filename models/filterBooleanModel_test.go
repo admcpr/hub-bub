@@ -9,18 +9,19 @@ import (
 
 func TestNewFilterBooleanModel(t *testing.T) {
 	tests := []struct {
+		tab   string
 		title string
 		value bool
 	}{
-		{"Test 1", true},
-		{"Test 2", false},
-		{"Test 3", true},
-		{"Test 4", false},
+		{"Tab1", "Test 1", true},
+		{"Tab1", "Test 2", false},
+		{"Tab1", "Test 3", true},
+		{"Tab1", "Test 4", false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
-			m := NewFilterBooleanModel(tt.title, tt.value)
+			m := NewFilterBooleanModel(tt.tab, tt.title, tt.value)
 
 			if m.Title != tt.title {
 				t.Errorf("got %q, want %q", m.Title, tt.title)
@@ -34,8 +35,8 @@ func TestNewFilterBooleanModel(t *testing.T) {
 }
 
 func TestFilterBooleanModel_Update(t *testing.T) {
-	trueModel := NewFilterBooleanModel("True", true)
-	falseModel := NewFilterBooleanModel("False", false)
+	trueModel := NewFilterBooleanModel("Tab 1", "True", true)
+	falseModel := NewFilterBooleanModel("Tab 1", "False", false)
 
 	tests := []struct {
 		model  FilterBooleanModel

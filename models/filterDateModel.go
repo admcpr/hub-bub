@@ -2,6 +2,8 @@ package models
 
 import (
 	"fmt"
+	"hub-bub/messages"
+	"hub-bub/structs"
 	"strconv"
 	"strings"
 	"time"
@@ -10,14 +12,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type FilterBool struct {
-	Tab       string
-	Name      string
-	fromValue time.Time
-	toValue   time.Time
-}
-
 type FilterDateModel struct {
+	Tab       string
 	Title     string
 	fromInput textinput.Model
 	toInput   textinput.Model
@@ -52,8 +48,9 @@ func dateValidator(s, prompt string) error {
 	return nil
 }
 
-func NewFilterDateModel(title string, from, to time.Time) FilterDateModel {
+func NewFilterDateModel(tab, title string, from, to time.Time) FilterDateModel {
 	m := FilterDateModel{
+		Tab:       tab,
 		Title:     title,
 		fromInput: textinput.New(),
 		toInput:   textinput.New(),
@@ -135,4 +132,16 @@ func (m *FilterDateModel) GetValue() (time.Time, time.Time, error) {
 	to, _ := time.Parse("2006-01-02", m.toInput.Value())
 
 	return from, to, nil
+}
+
+func (m FilterDateModel) Cancel() tea.Msg {
+	return tea.KeyMsg{Type: tea.KeyEnter}
+}
+
+func (m FilterDateModel) Confirm() tea.Msg {
+	from, to, _ := m.GetValue()
+
+	return messages.FilterDateMsg{
+		Filter: structs.FilterDate{Tab: m.Tab, Name: m.Title, From: from, To: to},
+	}
 }

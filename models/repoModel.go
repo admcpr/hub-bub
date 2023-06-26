@@ -3,6 +3,7 @@ package models
 import (
 	"hub-bub/keyMaps"
 	"hub-bub/structs"
+	"time"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/table"
@@ -12,7 +13,7 @@ import (
 
 type RepoModel struct {
 	repository  structs.Repository
-	filterModel FilterModel // TODO:
+	filterModel tea.Model
 
 	settingsTable table.Model
 
@@ -66,8 +67,16 @@ func (m *RepoModel) ToggleFilterEditor() {
 	if !m.showFilterEditor {
 		tab := m.repository.SettingsTabs[m.activeTab]
 		index := m.settingsTable.Cursor()
+		setting := tab.Settings[index]
 
-		m.filterModel = NewFilterModel(tab.Name, tab.Settings[index])
+		switch value := setting.Value.(type) {
+		case bool:
+			m.filterModel = NewFilterBooleanModel(tab.Name, setting.Name, value)
+		case int:
+			m.filterModel = NewFilterNumberModel(tab.Name, setting.Name, value, value)
+		case time.Time:
+			m.filterModel = NewFilterDateModel(tab.Name, setting.Name, value, value)
+		}
 	}
 
 	m.showFilterEditor = !m.showFilterEditor
@@ -97,7 +106,9 @@ func (m RepoModel) Update(msg tea.Msg) (RepoModel, tea.Cmd) {
 		}
 	}
 
-	m.filterModel, cmd = m.filterModel.Update(msg)
+	if m.showFilterEditor {
+		m.filterModel, cmd = m.filterModel.Update(msg)
+	}
 
 	return m, cmd
 }
@@ -121,7 +132,7 @@ func (m RepoModel) View() string {
 	}
 }
 
-func NewSettingsTable(activeSettings []structs.SettingGetter, width int) table.Model {
+func NewSettingsTable(activeSettings []structs.Setting, width int) table.Model {
 	widthWithoutBorder := width - 2
 	quarterWidth := quarter(widthWithoutBorder)
 
@@ -131,7 +142,7 @@ func NewSettingsTable(activeSettings []structs.SettingGetter, width int) table.M
 
 	rows := make([]table.Row, len(activeSettings))
 	for i, setting := range activeSettings {
-		rows[i] = table.Row{setting.GetName(), setting.GetValue()}
+		rows[i] = table.Row{setting.Name, setting.String()}
 	}
 
 	return table.New(table.WithColumns(columns),
