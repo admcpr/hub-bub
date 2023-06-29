@@ -18,8 +18,9 @@ import (
 )
 
 type OrgModel struct {
-	Title        string
-	Filters      []structs.RepositoryFilter
+	Title   string
+	Filters []structs.RepositoryFilter
+
 	Repositories []structs.Repository
 
 	repoList  list.Model

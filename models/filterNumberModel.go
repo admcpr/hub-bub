@@ -103,7 +103,5 @@ func (m FilterNumberModel) Cancel() tea.Msg {
 func (m FilterNumberModel) Confirm() tea.Msg {
 	from, to := m.GetValue()
 
-	return messages.FilterNumberMsg{
-		Filter: structs.FilterNumber{Tab: m.Tab, Name: m.Title, From: from, To: to},
-	}
+	return messages.FilterNumberMsg{Filter: structs.NewFilterNumber(m.Tab, m.Title, from, to)}
 }

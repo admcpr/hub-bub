@@ -141,7 +141,5 @@ func (m FilterDateModel) Cancel() tea.Msg {
 func (m FilterDateModel) Confirm() tea.Msg {
 	from, to, _ := m.GetValue()
 
-	return messages.FilterDateMsg{
-		Filter: structs.FilterDate{Tab: m.Tab, Name: m.Title, From: from, To: to},
-	}
+	return messages.FilterDateMsg{Filter: structs.NewFilterDate(m.Tab, m.Title, from, to)}
 }

@@ -69,7 +69,5 @@ func (m FilterBooleanModel) Cancel() tea.Msg {
 }
 
 func (m FilterBooleanModel) Confirm() tea.Msg {
-	return messages.FilterBoolMsg{
-		Filter: structs.FilterBool{Tab: m.Tab, Name: m.Title, Value: m.GetValue()},
-	}
+	return messages.FilterBoolMsg{Filter: structs.NewFilterBool(m.Tab, m.Title, m.GetValue())}
 }
