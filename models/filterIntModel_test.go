@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewFilterNumberModel(t *testing.T) {
+func TestNewFilterIntModel(t *testing.T) {
 	tests := []struct {
 		tab   string
 		title string
@@ -22,7 +22,7 @@ func TestNewFilterNumberModel(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
-			m := NewFilterNumberModel(tt.tab, tt.title, tt.from, tt.to)
+			m := NewFilterIntModel(tt.tab, tt.title, tt.from, tt.to)
 
 			assert.Equal(t, m.Tab, tt.tab)
 			assert.Equal(t, m.Title, tt.title)
@@ -32,7 +32,7 @@ func TestNewFilterNumberModel(t *testing.T) {
 	}
 }
 
-func TestNumberValidator(t *testing.T) {
+func TestIntValidator(t *testing.T) {
 	tests := []struct {
 		input  string
 		prompt string
@@ -46,7 +46,7 @@ func TestNumberValidator(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("%s: %s", tt.prompt, tt.input), func(t *testing.T) {
-			got := numberValidator(tt.input, tt.prompt)
+			got := intValidator(tt.input, tt.prompt)
 
 			assert.Equal(t, got, tt.want, fmt.Sprintf("got %q, want %q", got, tt.want))
 		})

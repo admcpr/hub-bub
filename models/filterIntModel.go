@@ -10,24 +10,24 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type FilterNumberModel struct {
+type FilterIntModel struct {
 	Tab       string
 	Title     string
 	fromInput textinput.Model
 	toInput   textinput.Model
 }
 
-func numberValidator(s, prompt string) error {
+func intValidator(s, prompt string) error {
 	_, err := strconv.Atoi(s)
 	if err != nil {
-		return fmt.Errorf("please enter a number for the `%s` value", prompt)
+		return fmt.Errorf("please enter an integer for the `%s` value", prompt)
 	}
 
 	return nil
 }
 
-func NewFilterNumberModel(tab, title string, from, to int) FilterNumberModel {
-	m := FilterNumberModel{
+func NewFilterIntModel(tab, title string, from, to int) FilterIntModel {
+	m := FilterIntModel{
 		Tab:       tab,
 		Title:     title,
 		fromInput: textinput.New(),
@@ -37,23 +37,23 @@ func NewFilterNumberModel(tab, title string, from, to int) FilterNumberModel {
 	m.fromInput.Placeholder = fmt.Sprint(from)
 	m.fromInput.Prompt = "From: "
 	m.fromInput.CharLimit = 4
-	m.fromInput.Validate = func(s string) error { return numberValidator(s, m.fromInput.Prompt) }
+	m.fromInput.Validate = func(s string) error { return intValidator(s, m.fromInput.Prompt) }
 
 	m.toInput.Placeholder = fmt.Sprint(to)
 	m.toInput.Prompt = "To: "
 	m.toInput.CharLimit = 4
-	m.toInput.Validate = func(s string) error { return numberValidator(s, m.toInput.Prompt) }
+	m.toInput.Validate = func(s string) error { return intValidator(s, m.toInput.Prompt) }
 
 	m.fromInput.Focus()
 
 	return m
 }
 
-func (m FilterNumberModel) Init() tea.Cmd {
+func (m FilterIntModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m FilterNumberModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m FilterIntModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
@@ -76,7 +76,7 @@ func (m FilterNumberModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m FilterNumberModel) toggleInputFocus() {
+func (m FilterIntModel) toggleInputFocus() {
 	if m.fromInput.Focused() {
 		m.fromInput.Blur()
 		m.toInput.Focus()
@@ -86,22 +86,22 @@ func (m FilterNumberModel) toggleInputFocus() {
 	}
 }
 
-func (m FilterNumberModel) View() string {
+func (m FilterIntModel) View() string {
 	return m.Title + " " + m.fromInput.View() + " " + m.toInput.View()
 }
 
-func (m *FilterNumberModel) GetValue() (int, int) {
+func (m *FilterIntModel) GetValue() (int, int) {
 	from, _ := strconv.Atoi(m.fromInput.Value())
 	to, _ := strconv.Atoi(m.toInput.Value())
 	return from, to
 }
 
-func (m FilterNumberModel) Cancel() tea.Msg {
-	return messages.FilterCancelMsg{Tab: m.Tab, NAme: m.Title}
+func (m FilterIntModel) Cancel() tea.Msg {
+	return messages.NewCancelFilterMsg(structs.NewFilterInt(m.Tab, m.Title, 0, 0))
 }
 
-func (m FilterNumberModel) Confirm() tea.Msg {
+func (m FilterIntModel) Confirm() tea.Msg {
 	from, to := m.GetValue()
 
-	return messages.FilterNumberMsg{Filter: structs.NewFilterNumber(m.Tab, m.Title, from, to)}
+	return messages.NewConfirmFilterMsg(structs.NewFilterInt(m.Tab, m.Title, from, to))
 }

@@ -71,9 +71,9 @@ func (m *RepoModel) ToggleFilterEditor() {
 
 		switch value := setting.Value.(type) {
 		case bool:
-			m.filterModel = NewFilterBooleanModel(tab.Name, setting.Name, value)
+			m.filterModel = NewFilterBoolModel(tab.Name, setting.Name, value)
 		case int:
-			m.filterModel = NewFilterNumberModel(tab.Name, setting.Name, value, value)
+			m.filterModel = NewFilterIntModel(tab.Name, setting.Name, value, value)
 		case time.Time:
 			m.filterModel = NewFilterDateModel(tab.Name, setting.Name, value, value)
 		}
@@ -104,6 +104,16 @@ func (m RepoModel) Update(msg tea.Msg) (RepoModel, tea.Cmd) {
 		case tea.KeyEsc:
 			m.showFilterEditor = false
 		}
+		// case messages.FilterMsg:
+		// 	switch msg.Filter.GetType() {
+		// 		case reflect.Bool:
+		// 			return m, nil
+		// 		case reflect.Int:
+		// 			return m, nil
+		// 		case reflect.Time:
+		// 			return m, nil
+		// 		}
+
 	}
 
 	if m.showFilterEditor {

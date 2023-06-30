@@ -7,7 +7,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func TestNewFilterBooleanModel(t *testing.T) {
+func TestNewFilterBoolModel(t *testing.T) {
 	tests := []struct {
 		tab   string
 		title string
@@ -21,7 +21,7 @@ func TestNewFilterBooleanModel(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
-			m := NewFilterBooleanModel(tt.tab, tt.title, tt.value)
+			m := NewFilterBoolModel(tt.tab, tt.title, tt.value)
 
 			if m.Title != tt.title {
 				t.Errorf("got %q, want %q", m.Title, tt.title)
@@ -34,12 +34,12 @@ func TestNewFilterBooleanModel(t *testing.T) {
 	}
 }
 
-func TestFilterBooleanModel_Update(t *testing.T) {
-	trueModel := NewFilterBooleanModel("Tab 1", "True", true)
-	falseModel := NewFilterBooleanModel("Tab 1", "False", false)
+func TestFilterBoolModel_Update(t *testing.T) {
+	trueModel := NewFilterBoolModel("Tab 1", "True", true)
+	falseModel := NewFilterBoolModel("Tab 1", "False", false)
 
 	tests := []struct {
-		model  FilterBooleanModel
+		model  FilterBoolModel
 		title  string
 		msgKey rune
 		want   bool
@@ -56,7 +56,7 @@ func TestFilterBooleanModel_Update(t *testing.T) {
 			msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{tt.msgKey}}
 			m, _ := tt.model.Update(msg)
 
-			filterBooleanModel, _ := m.(FilterBooleanModel)
+			filterBooleanModel, _ := m.(FilterBoolModel)
 			got := filterBooleanModel.GetValue()
 
 			if got != tt.want {

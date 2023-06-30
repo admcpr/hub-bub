@@ -135,11 +135,11 @@ func (m *FilterDateModel) GetValue() (time.Time, time.Time, error) {
 }
 
 func (m FilterDateModel) Cancel() tea.Msg {
-	return tea.KeyMsg{Type: tea.KeyEnter}
+	return messages.NewCancelFilterMsg(structs.NewFilterDate(m.Tab, m.Title, time.Now(), time.Now()))
 }
 
 func (m FilterDateModel) Confirm() tea.Msg {
 	from, to, _ := m.GetValue()
 
-	return messages.FilterDateMsg{Filter: structs.NewFilterDate(m.Tab, m.Title, from, to)}
+	return messages.NewConfirmFilterMsg(structs.NewFilterDate(m.Tab, m.Title, from, to))
 }

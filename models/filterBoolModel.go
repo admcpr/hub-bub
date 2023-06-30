@@ -8,14 +8,14 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type FilterBooleanModel struct {
+type FilterBoolModel struct {
 	Tab   string
 	Title string
 	input textinput.Model
 }
 
-func NewFilterBooleanModel(tab, title string, value bool) FilterBooleanModel {
-	m := FilterBooleanModel{
+func NewFilterBoolModel(tab, title string, value bool) FilterBoolModel {
+	m := FilterBoolModel{
 		Tab:   tab,
 		Title: title,
 		input: textinput.New(),
@@ -27,11 +27,11 @@ func NewFilterBooleanModel(tab, title string, value bool) FilterBooleanModel {
 	return m
 }
 
-func (m FilterBooleanModel) Init() tea.Cmd {
+func (m FilterBoolModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m FilterBooleanModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m FilterBoolModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
@@ -52,22 +52,22 @@ func (m FilterBooleanModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m FilterBooleanModel) View() string {
+func (m FilterBoolModel) View() string {
 	return m.Title + " " + m.input.View()
 }
 
-func (m *FilterBooleanModel) GetValue() bool {
+func (m *FilterBoolModel) GetValue() bool {
 	return m.input.Value() == "Yes"
 }
 
-func (m *FilterBooleanModel) Focus() tea.Cmd {
+func (m *FilterBoolModel) Focus() tea.Cmd {
 	return m.input.Focus()
 }
 
-func (m FilterBooleanModel) Cancel() tea.Msg {
-	return messages.FilterCancelMsg{Tab: m.Tab, NAme: m.Title}
+func (m FilterBoolModel) Cancel() tea.Msg {
+	return messages.NewCancelFilterMsg(structs.NewFilterBool(m.Tab, m.Title, false))
 }
 
-func (m FilterBooleanModel) Confirm() tea.Msg {
-	return messages.FilterBoolMsg{Filter: structs.NewFilterBool(m.Tab, m.Title, m.GetValue())}
+func (m FilterBoolModel) Confirm() tea.Msg {
+	return messages.NewConfirmFilterMsg(structs.NewFilterBool(m.Tab, m.Title, m.GetValue()))
 }
