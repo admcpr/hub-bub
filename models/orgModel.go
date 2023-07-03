@@ -17,6 +17,32 @@ import (
 	graphql "github.com/cli/shurcooL-graphql"
 )
 
+type Focus int
+
+const (
+	focusList Focus = iota
+	focusTabs
+	focusFilter
+)
+
+func (f Focus) Next() Focus {
+	switch f {
+	case focusList:
+		return focusTabs
+	default:
+		return focusFilter
+	}
+}
+
+func (f Focus) Prev() Focus {
+	switch f {
+	case focusFilter:
+		return focusTabs
+	default:
+		return focusList
+	}
+}
+
 type OrgModel struct {
 	Title   string
 	Filters []structs.RepositoryFilter
@@ -24,16 +50,16 @@ type OrgModel struct {
 	Repositories []structs.Repository
 
 	repoList  list.Model
-	repoModel RepoModel
+	repoModel tea.Model
 	help      help.Model
 	keys      keyMaps.OrgKeyMap
 
-	width         int
-	height        int
-	loaded        bool
-	tabsHaveFocus bool
-	getting       bool
-	spinner       spinner.Model
+	focus   Focus
+	width   int
+	height  int
+	loaded  bool
+	getting bool
+	spinner spinner.Model
 }
 
 func NewOrgModel(title string, width, height int) OrgModel {
@@ -48,6 +74,7 @@ func NewOrgModel(title string, width, height int) OrgModel {
 		Filters:   []structs.RepositoryFilter{},
 		getting:   true,
 		spinner:   spinner.New(spinner.WithSpinner(spinner.Pulse)),
+		focus:     focusList,
 	}
 }
 
@@ -103,14 +130,10 @@ func (m *OrgModel) UpdateRepoList() {
 
 	m.repoList = list
 
-	m.repoModel.SelectRepo(m.Repositories[0], half(m.width), m.height)
+	// m.repoModel.SelectRepo(m.Repositories[0], half(m.width), m.height)
 }
 
 func (m *OrgModel) helpView() string {
-	if m.tabsHaveFocus {
-		return m.repoModel.help.View(m.repoModel.keys)
-	}
-
 	return m.help.View(m.keys)
 }
 
@@ -134,40 +157,81 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case tea.KeyMsg:
-		if m.tabsHaveFocus {
-			switch msg.Type {
-			case tea.KeyEsc:
-				m.tabsHaveFocus = false
-				return m, nil
-			case tea.KeyEnter:
-				m.repoModel.ToggleFilterEditor()
-			}
-			m.repoModel, cmd = m.repoModel.Update(msg)
-		} else {
-			switch msg.String() {
-			case tea.KeyEnter.String():
-				m.tabsHaveFocus = true
-			case tea.KeyEsc.String():
+		// Handle navigation Enter, Esc to select, deselect
+		switch msg.Key {
+		case tea.KeyEnter:
+			//Enter selects so we can navigate to the next focus
+			m.focus = m.focus.Next()
+		case tea.KeyEsc:
+			// Esc goes back so we can navigate to the previous focus, or go to the previous model
+			if m.focus == focusList {
 				if !m.repoList.SettingFilter() {
 					return MainModel[UserModelName], nil
 				}
-				m.repoList, cmd = m.repoList.Update(msg)
-			case "ctrl+c", "q":
-				if !m.repoList.SettingFilter() {
-					return m, tea.Quit
-				}
-			case tea.KeyUp.String(), tea.KeyDown.String():
-				m.repoList, cmd = m.repoList.Update(msg)
-				m.repoModel.SelectRepo(m.Repositories[m.repoList.Index()], half(m.width), m.height)
-			default:
-				m.repoList, cmd = m.repoList.Update(msg)
 			}
+			m.focus = m.focus.Prev()
 		}
 	}
+
+	// case tea.KeyMsg:
+	// 	switch m.focus {
+	// 	case focusList:
+	// 		var tabCmd tea.Cmd
+	// 		m, cmd = m.UpdateList(msg)
+
+	// 		m, tabCmd = UpdateTabs(&m, msg)
+	// 		return m, tea.Batch(cmd, tabCmd)
+	// 	case focusTabs:
+	// 		m, cmd = m.UpdateTabs(msg)
+	// 	case focusFilter:
+	// 		m, cmd = m.UpdateFilter(msg)
+	// 	}
+	// }
 
 	if m.getting {
 		m.spinner, cmd = m.spinner.Update(msg)
 	}
+
+	return m, cmd
+}
+
+func (m OrgModel) UpdateList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+
+	switch msg.String() {
+	case tea.KeyEnter.String():
+		m.focus = focusTabs
+	case tea.KeyEsc.String():
+
+		m.repoList, cmd = m.repoList.Update(msg)
+	case "ctrl+c", "q":
+		if !m.repoList.SettingFilter() {
+			return m, tea.Quit
+		}
+	default:
+		m.repoList, cmd = m.repoList.Update(msg)
+	}
+
+	return m, cmd
+}
+
+func (m OrgModel) UpdateTabs(msg tea.KeyMsg) (OrgModel, tea.Cmd) {
+	var cmd tea.Cmd
+	switch msg.Type {
+	case tea.KeyEsc:
+		m.focus = focusList
+		return m, nil
+	case tea.KeyEnter:
+		// m.repoModel.ToggleFilterEditor()
+	case tea.KeyUp, tea.KeyDown:
+		// m.repoModel.SelectRepo(m.Repositories[m.repoList.Index()], half(m.width), m.height)
+	}
+	m.repoModel, cmd = m.repoModel.Update(msg)
+	return m, cmd
+}
+
+func (m OrgModel) UpdateFilter(msg tea.KeyMsg) (OrgModel, tea.Cmd) {
+	var cmd tea.Cmd
 
 	return m, cmd
 }

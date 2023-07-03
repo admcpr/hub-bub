@@ -82,7 +82,7 @@ func (m *RepoModel) ToggleFilterEditor() {
 	m.showFilterEditor = !m.showFilterEditor
 }
 
-func (m RepoModel) Update(msg tea.Msg) (RepoModel, tea.Cmd) {
+func (m RepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
@@ -119,9 +119,17 @@ func (m RepoModel) Update(msg tea.Msg) (RepoModel, tea.Cmd) {
 	if m.showFilterEditor {
 		m.filterModel, cmd = m.filterModel.Update(msg)
 	}
+	// else{
+
+	// }
 
 	return m, cmd
 }
+
+// func (m RepoModel) UpdateRepoModel(msg tea.Msg) (tea.Model, tea.Cmd){
+// 	var cmd tea.Cmd
+// 	return m, cmd
+// }
 
 func (m RepoModel) View() string {
 	if m.repository.SettingsTabs == nil || len(m.repository.SettingsTabs) == 0 {
