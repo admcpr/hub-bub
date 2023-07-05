@@ -153,6 +153,8 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			m.focus = m.focus.Prev()
+		case tea.KeyCtrlC:
+			return m, tea.Quit
 		default:
 			switch m.focus {
 			case focusList:
@@ -178,14 +180,7 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m OrgModel) UpdateList(msg tea.KeyMsg) (OrgModel, tea.Cmd) {
 	var cmd tea.Cmd
 
-	switch msg.String() {
-	case "ctrl+c", "q":
-		if !m.repoList.SettingFilter() {
-			return m, tea.Quit
-		}
-	default:
-		m.repoList, cmd = m.repoList.Update(msg)
-	}
+	m.repoList, cmd = m.repoList.Update(msg)
 
 	return m, cmd
 }

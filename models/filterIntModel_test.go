@@ -40,8 +40,8 @@ func TestIntValidator(t *testing.T) {
 	}{
 		{"123", "Test 1", nil},
 		{"-5", "Test 2", nil},
-		{"abc", "Test 3", fmt.Errorf("please enter a number for the `Test 3` value")},
-		{"1.23", "Test 4", fmt.Errorf("please enter a number for the `Test 4` value")},
+		{"abc", "Test 3", fmt.Errorf("please enter an integer for the `Test 3` value")},
+		{"1.23", "Test 4", fmt.Errorf("please enter an integer for the `Test 4` value")},
 	}
 
 	for _, tt := range tests {

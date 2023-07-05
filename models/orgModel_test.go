@@ -21,7 +21,6 @@ func TestOrgModel_Update_Quit(t *testing.T) {
 	}{
 		// TODO: Add more test cases.
 		{"Quit with 'ctrl+c'", defaultOrgModel, args{tea.KeyMsg{Type: tea.KeyCtrlC}}, tea.Quit},
-		{"Quit with 'q'", defaultOrgModel, args{tea.KeyMsg{Type: tea.KeyCtrlC}}, tea.Quit},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
