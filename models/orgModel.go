@@ -17,32 +17,6 @@ import (
 	graphql "github.com/cli/shurcooL-graphql"
 )
 
-type Focus int
-
-const (
-	focusList Focus = iota
-	focusTabs
-	focusFilter
-)
-
-func (f Focus) Next() Focus {
-	switch f {
-	case focusList:
-		return focusTabs
-	default:
-		return focusFilter
-	}
-}
-
-func (f Focus) Prev() Focus {
-	switch f {
-	case focusFilter:
-		return focusTabs
-	default:
-		return focusList
-	}
-}
-
 type OrgModel struct {
 	Title   string
 	Filters []structs.RepositoryFilter
@@ -60,6 +34,14 @@ type OrgModel struct {
 	loaded  bool
 	getting bool
 	spinner spinner.Model
+}
+
+func (m OrgModel) NewRepoSelectMsg() messages.RepoSelectMsg {
+	return messages.RepoSelectMsg{
+		Repository: m.Repositories[m.repoList.Index()],
+		Width:      m.width / 2,
+		Height:     m.height,
+	}
 }
 
 func NewOrgModel(title string, width, height int) OrgModel {
@@ -130,7 +112,7 @@ func (m *OrgModel) UpdateRepoList() {
 
 	m.repoList = list
 
-	// m.repoModel.SelectRepo(m.Repositories[0], half(m.width), m.height)
+	//m.repoModel.SelectRepo(m.Repositories[0], half(m.width), m.height)
 }
 
 func (m *OrgModel) helpView() string {
@@ -154,11 +136,12 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case messages.RepoListMsg:
 		m.UpdateRepositories(msg.OrganizationQuery)
+		m.repoModel, _ = m.repoModel.Update(m.NewRepoSelectMsg())
 		return m, nil
 
 	case tea.KeyMsg:
 		// Handle navigation Enter, Esc to select, deselect
-		switch msg.Key {
+		switch msg.Type {
 		case tea.KeyEnter:
 			//Enter selects so we can navigate to the next focus
 			m.focus = m.focus.Next()
@@ -170,23 +153,20 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			m.focus = m.focus.Prev()
+		default:
+			switch m.focus {
+			case focusList:
+				var tabCmd tea.Cmd
+
+				m, cmd = m.UpdateList(msg)
+				m.repoModel, tabCmd = m.repoModel.Update(m.NewRepoSelectMsg())
+				return m, tea.Batch(cmd, tabCmd)
+			case focusTabs, focusFilter:
+				m, cmd = m.UpdateTabs(msg)
+			}
 		}
+
 	}
-
-	// case tea.KeyMsg:
-	// 	switch m.focus {
-	// 	case focusList:
-	// 		var tabCmd tea.Cmd
-	// 		m, cmd = m.UpdateList(msg)
-
-	// 		m, tabCmd = UpdateTabs(&m, msg)
-	// 		return m, tea.Batch(cmd, tabCmd)
-	// 	case focusTabs:
-	// 		m, cmd = m.UpdateTabs(msg)
-	// 	case focusFilter:
-	// 		m, cmd = m.UpdateFilter(msg)
-	// 	}
-	// }
 
 	if m.getting {
 		m.spinner, cmd = m.spinner.Update(msg)
@@ -195,15 +175,10 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m OrgModel) UpdateList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
+func (m OrgModel) UpdateList(msg tea.KeyMsg) (OrgModel, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg.String() {
-	case tea.KeyEnter.String():
-		m.focus = focusTabs
-	case tea.KeyEsc.String():
-
-		m.repoList, cmd = m.repoList.Update(msg)
 	case "ctrl+c", "q":
 		if !m.repoList.SettingFilter() {
 			return m, tea.Quit
@@ -217,21 +192,8 @@ func (m OrgModel) UpdateList(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 func (m OrgModel) UpdateTabs(msg tea.KeyMsg) (OrgModel, tea.Cmd) {
 	var cmd tea.Cmd
-	switch msg.Type {
-	case tea.KeyEsc:
-		m.focus = focusList
-		return m, nil
-	case tea.KeyEnter:
-		// m.repoModel.ToggleFilterEditor()
-	case tea.KeyUp, tea.KeyDown:
-		// m.repoModel.SelectRepo(m.Repositories[m.repoList.Index()], half(m.width), m.height)
-	}
-	m.repoModel, cmd = m.repoModel.Update(msg)
-	return m, cmd
-}
 
-func (m OrgModel) UpdateFilter(msg tea.KeyMsg) (OrgModel, tea.Cmd) {
-	var cmd tea.Cmd
+	m.repoModel, cmd = m.repoModel.Update(msg)
 
 	return m, cmd
 }

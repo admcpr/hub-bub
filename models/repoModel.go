@@ -2,6 +2,7 @@ package models
 
 import (
 	"hub-bub/keyMaps"
+	"hub-bub/messages"
 	"hub-bub/structs"
 	"time"
 
@@ -13,7 +14,7 @@ import (
 
 type RepoModel struct {
 	repository  structs.Repository
-	filterModel tea.Model
+	FilterModel tea.Model
 
 	settingsTable table.Model
 
@@ -71,11 +72,11 @@ func (m *RepoModel) ToggleFilterEditor() {
 
 		switch value := setting.Value.(type) {
 		case bool:
-			m.filterModel = NewFilterBoolModel(tab.Name, setting.Name, value)
+			m.FilterModel = NewFilterBoolModel(tab.Name, setting.Name, value)
 		case int:
-			m.filterModel = NewFilterIntModel(tab.Name, setting.Name, value, value)
+			m.FilterModel = NewFilterIntModel(tab.Name, setting.Name, value, value)
 		case time.Time:
-			m.filterModel = NewFilterDateModel(tab.Name, setting.Name, value, value)
+			m.FilterModel = NewFilterDateModel(tab.Name, setting.Name, value, value)
 		}
 	}
 
@@ -91,6 +92,8 @@ func (m RepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.loaded = true
 		}
 		return m, nil
+	case messages.RepoSelectMsg:
+		m.SelectRepo(msg.Repository, msg.Width, msg.Height)
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyRight:
@@ -117,11 +120,8 @@ func (m RepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	if m.showFilterEditor {
-		m.filterModel, cmd = m.filterModel.Update(msg)
+		m.FilterModel, cmd = m.FilterModel.Update(msg)
 	}
-	// else{
-
-	// }
 
 	return m, cmd
 }
@@ -142,7 +142,7 @@ func (m RepoModel) View() string {
 
 	var tabs = RenderTabs(m.repository.SettingsTabs, m.width, m.activeTab)
 	if m.showFilterEditor {
-		filter := lipgloss.NewStyle().Width(m.width - 2).Height(m.height - 7).Render(m.filterModel.View())
+		filter := lipgloss.NewStyle().Width(m.width - 2).Height(m.height - 7).Render(m.FilterModel.View())
 		return lipgloss.JoinVertical(lipgloss.Left, tabs, filter)
 	} else {
 		settings := settingsStyle.Width(m.width - 2).Height(m.height - 7).Render(m.settingsTable.View())
