@@ -1,28 +1,23 @@
 package messages
 
-import "hub-bub/structs"
-
-type FilterAction int
-
-const (
-	FilterConfirm FilterAction = iota
-	FilterDelete
-	FilterCancel
+import (
+	"hub-bub/consts"
+	"hub-bub/structs"
 )
 
 type FilterMsg struct {
-	Action FilterAction
+	Action consts.FilterAction
 	Filter structs.Filter
 }
 
 func NewConfirmFilterMsg(filter structs.Filter) FilterMsg {
-	return FilterMsg{Action: FilterConfirm, Filter: filter}
+	return FilterMsg{Action: consts.FilterConfirm, Filter: filter}
 }
 
 func NewDeleteFilterMsg(filter structs.Filter) FilterMsg {
-	return FilterMsg{Action: FilterDelete, Filter: filter}
+	return FilterMsg{Action: consts.FilterDelete, Filter: filter}
 }
 
 func NewCancelFilterMsg(filter structs.Filter) FilterMsg {
-	return FilterMsg{Action: FilterCancel, Filter: filter}
+	return FilterMsg{Action: consts.FilterCancel, Filter: filter}
 }

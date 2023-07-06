@@ -1,4 +1,4 @@
-package models
+package consts
 
 import (
 	"fmt"
@@ -12,9 +12,9 @@ func TestFocus_Next(t *testing.T) {
 		input    Focus
 		expected Focus
 	}{
-		{input: focusList, expected: focusTabs},
-		{input: focusTabs, expected: focusFilter},
-		{input: focusFilter, expected: focusFilter},
+		{input: FocusList, expected: FocusTabs},
+		{input: FocusTabs, expected: FocusFilter},
+		{input: FocusFilter, expected: FocusFilter},
 	}
 
 	for _, tt := range tests {
@@ -30,9 +30,9 @@ func TestFocus_Prev(t *testing.T) {
 		input    Focus
 		expected Focus
 	}{
-		{input: focusList, expected: focusList},
-		{input: focusTabs, expected: focusList},
-		{input: focusFilter, expected: focusTabs},
+		{input: FocusList, expected: FocusList},
+		{input: FocusTabs, expected: FocusList},
+		{input: FocusFilter, expected: FocusTabs},
 	}
 
 	for _, tt := range tests {

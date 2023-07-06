@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"hub-bub/consts"
 	"hub-bub/keyMaps"
 	"hub-bub/messages"
 	"hub-bub/structs"
@@ -28,7 +29,7 @@ type OrgModel struct {
 	help      help.Model
 	keys      keyMaps.OrgKeyMap
 
-	focus   Focus
+	focus   consts.Focus
 	width   int
 	height  int
 	loaded  bool
@@ -56,7 +57,6 @@ func NewOrgModel(title string, width, height int) OrgModel {
 		Filters:   []structs.RepositoryFilter{},
 		getting:   true,
 		spinner:   spinner.New(spinner.WithSpinner(spinner.Pulse)),
-		focus:     focusList,
 	}
 }
 
@@ -145,25 +145,27 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyEnter:
 			//Enter selects so we can navigate to the next focus
 			m.focus = m.focus.Next()
+			m.repoModel, _ = m.repoModel.Update(messages.NewFocusMsg(m.focus))
 		case tea.KeyEsc:
 			// Esc goes back so we can navigate to the previous focus, or go to the previous model
-			if m.focus == focusList {
+			if m.focus == consts.FocusList {
 				if !m.repoList.SettingFilter() {
-					return MainModel[UserModelName], nil
+					return MainModel[consts.UserModelName], nil
 				}
 			}
 			m.focus = m.focus.Prev()
+			m.repoModel, _ = m.repoModel.Update(messages.NewFocusMsg(m.focus))
 		case tea.KeyCtrlC:
 			return m, tea.Quit
 		default:
 			switch m.focus {
-			case focusList:
+			case consts.FocusList:
 				var tabCmd tea.Cmd
 
 				m, cmd = m.UpdateList(msg)
 				m.repoModel, tabCmd = m.repoModel.Update(m.NewRepoSelectMsg())
 				return m, tea.Batch(cmd, tabCmd)
-			case focusTabs, focusFilter:
+			case consts.FocusTabs, consts.FocusFilter:
 				m, cmd = m.UpdateTabs(msg)
 			}
 		}

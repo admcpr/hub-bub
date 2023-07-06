@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"hub-bub/consts"
 	"hub-bub/models"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -12,7 +13,7 @@ import (
 func main() {
 	models.MainModel = []tea.Model{models.NewUserModel(), &models.OrgModel{}}
 
-	p := tea.NewProgram(models.MainModel[models.UserModelName])
+	p := tea.NewProgram(models.MainModel[consts.UserModelName])
 	// p := tea.NewProgram(models.NewFilterBooleanModel("Is this a boolean?", true))
 	// p := tea.NewProgram(models.NewFilterNumberModel("What number would you like to choose?", 1, 1))
 	// p := tea.NewProgram(models.NewFilterDateModel("What date would you like to choose?", time.Now(), time.Now()))

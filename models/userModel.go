@@ -3,6 +3,7 @@ package models
 import (
 	"fmt"
 
+	"hub-bub/consts"
 	"hub-bub/messages"
 	"hub-bub/structs"
 
@@ -78,11 +79,11 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c":
 			return m, tea.Quit
 		case "enter", " ":
-			MainModel[UserModelName] = m
+			MainModel[consts.UserModelName] = m
 			item := m.list.SelectedItem()
 			orgModel := NewOrgModel(item.(structs.ListItem).Title(), m.width, m.height)
 
-			MainModel[OrganisationModelName] = orgModel
+			MainModel[consts.OrganisationModelName] = orgModel
 
 			return orgModel, orgModel.GetRepositories
 		}
