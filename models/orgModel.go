@@ -180,7 +180,7 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case consts.FilterAdd:
 			m.Filters = append(m.Filters, msg.Filter)
-			m.repoList, cmd = m.repoList.Update(msg)
+			m.UpdateRepoList()
 		}
 	}
 
