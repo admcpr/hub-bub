@@ -99,7 +99,7 @@ func (m RepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.Type {
 		case tea.KeyEsc:
 			if m.showFilterEditor {
-				m.ToggleFilterEditor()
+				m.showFilterEditor = true
 				return m, cmd
 			} else {
 				return m, FocusList
@@ -112,19 +112,16 @@ func (m RepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case messages.FocusMessage:
 		switch msg.Focus {
-		case consts.FocusFilter, consts.FocusTabs:
-			m.ToggleFilterEditor()
+		case consts.FocusFilter:
+			m.showFilterEditor = true
+		case consts.FocusTabs:
+			m.showFilterEditor = false
 		}
-		// case messages.FilterMsg:
-		// 	switch msg.Filter.GetType() {
-		// 		case reflect.Bool:
-		// 			return m, nil
-		// 		case reflect.Int:
-		// 			return m, nil
-		// 		case reflect.Time:
-		// 			return m, nil
-		// 		}
-
+	case messages.FilterMsg:
+		switch msg.Action {
+		case consts.FilterConfirm:
+			m.showFilterEditor = false
+		}
 	}
 
 	return m, cmd

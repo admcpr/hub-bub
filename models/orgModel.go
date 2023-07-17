@@ -181,6 +181,7 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case consts.FilterAdd:
 			m.Filters = append(m.Filters, msg.Filter)
 			m.UpdateRepoList()
+			cmd = ConfirmFilter
 		}
 	}
 
@@ -224,4 +225,8 @@ func (m OrgModel) GetRepositories() tea.Msg {
 	}
 
 	return messages.RepoListMsg{OrganizationQuery: organizationQuery}
+}
+
+func ConfirmFilter() tea.Msg {
+	return messages.FilterMsg{Action: consts.FilterConfirm}
 }
