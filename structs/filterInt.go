@@ -24,3 +24,13 @@ func (f FilterInt) GetName() string {
 func (f FilterInt) GetType() reflect.Type {
 	return reflect.TypeOf(f.From)
 }
+
+func (f FilterInt) Matches(setting Setting) bool {
+	if setting.Type != reflect.TypeOf(f.From) {
+		return false
+	}
+
+	value := setting.Value.(int)
+
+	return value >= f.From && value <= f.To
+}

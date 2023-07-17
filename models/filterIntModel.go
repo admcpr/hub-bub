@@ -63,7 +63,13 @@ func (m FilterIntModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyEsc.String():
 			return m, m.Cancel
 		case tea.KeyTab.String():
-			m.toggleInputFocus()
+			if m.fromInput.Focused() {
+				m.fromInput.Blur()
+				m.toInput.Focus()
+			} else {
+				m.toInput.Blur()
+				m.fromInput.Focus()
+			}
 		default:
 			if m.fromInput.Focused() {
 				m.fromInput, cmd = m.fromInput.Update(msg)
@@ -74,16 +80,6 @@ func (m FilterIntModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	return m, cmd
-}
-
-func (m FilterIntModel) toggleInputFocus() {
-	if m.fromInput.Focused() {
-		m.fromInput.Blur()
-		m.toInput.Focus()
-	} else {
-		m.toInput.Blur()
-		m.fromInput.Focus()
-	}
 }
 
 func (m FilterIntModel) View() string {
@@ -103,5 +99,5 @@ func (m FilterIntModel) Cancel() tea.Msg {
 func (m FilterIntModel) Confirm() tea.Msg {
 	from, to := m.GetValue()
 
-	return messages.NewConfirmFilterMsg(structs.NewFilterInt(m.Tab, m.Title, from, to))
+	return messages.NewAddFilterMsg(structs.NewFilterInt(m.Tab, m.Title, from, to))
 }

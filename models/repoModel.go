@@ -1,6 +1,7 @@
 package models
 
 import (
+	"hub-bub/consts"
 	"hub-bub/keyMaps"
 	"hub-bub/messages"
 	"hub-bub/structs"
@@ -96,16 +97,23 @@ func (m RepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.SelectRepo(msg.Repository, msg.Width, msg.Height)
 	case tea.KeyMsg:
 		switch msg.Type {
-		case tea.KeyRight:
-			m.SelectTab(min(m.activeTab+1, len(m.repository.SettingsTabs)-1))
-		case tea.KeyLeft:
-			m.SelectTab(max(m.activeTab-1, 0))
-		case tea.KeyDown:
-			m.settingsTable.MoveDown(1)
-		case tea.KeyUp:
-			m.settingsTable.MoveUp(1)
 		case tea.KeyEsc:
-			m.showFilterEditor = false
+			if m.showFilterEditor {
+				m.ToggleFilterEditor()
+				return m, cmd
+			} else {
+				return m, FocusList
+			}
+		}
+		if m.showFilterEditor {
+			m.FilterModel, cmd = m.FilterModel.Update(msg)
+		} else {
+			m, cmd = m.UpdateRepoModel(msg.Type)
+		}
+	case messages.FocusMessage:
+		switch msg.Focus {
+		case consts.FocusFilter, consts.FocusTabs:
+			m.ToggleFilterEditor()
 		}
 		// case messages.FilterMsg:
 		// 	switch msg.Filter.GetType() {
@@ -119,17 +127,32 @@ func (m RepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	}
 
-	if m.showFilterEditor {
-		m.FilterModel, cmd = m.FilterModel.Update(msg)
+	return m, cmd
+}
+
+func (m RepoModel) UpdateRepoModel(keyType tea.KeyType) (RepoModel, tea.Cmd) {
+	var cmd tea.Cmd
+
+	switch keyType {
+	case tea.KeyEnter:
+		// Validate the filter and if it's good send a message
+		if !m.showFilterEditor {
+			m.ToggleFilterEditor()
+		}
+	case tea.KeyEsc:
+		m.showFilterEditor = false
+	case tea.KeyRight:
+		m.SelectTab(min(m.activeTab+1, len(m.repository.SettingsTabs)-1))
+	case tea.KeyLeft:
+		m.SelectTab(max(m.activeTab-1, 0))
+	case tea.KeyDown:
+		m.settingsTable.MoveDown(1)
+	case tea.KeyUp:
+		m.settingsTable.MoveUp(1)
 	}
 
 	return m, cmd
 }
-
-// func (m RepoModel) UpdateRepoModel(msg tea.Msg) (tea.Model, tea.Cmd){
-// 	var cmd tea.Cmd
-// 	return m, cmd
-// }
 
 func (m RepoModel) View() string {
 	if m.repository.SettingsTabs == nil || len(m.repository.SettingsTabs) == 0 {
@@ -174,4 +197,8 @@ func GetTableStyles() table.Styles {
 			BorderBottom(true).BorderForeground(blueLighter),
 		Cell: lipgloss.NewStyle().Padding(0),
 	}
+}
+
+func FocusList() tea.Msg {
+	return messages.FocusMessage{Focus: consts.FocusList}
 }

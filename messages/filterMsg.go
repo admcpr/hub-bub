@@ -10,6 +10,10 @@ type FilterMsg struct {
 	Filter structs.Filter
 }
 
+func NewAddFilterMsg(filter structs.Filter) FilterMsg {
+	return FilterMsg{Action: consts.FilterAdd, Filter: filter}
+}
+
 func NewConfirmFilterMsg(filter structs.Filter) FilterMsg {
 	return FilterMsg{Action: consts.FilterConfirm, Filter: filter}
 }

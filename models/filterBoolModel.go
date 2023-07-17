@@ -39,7 +39,7 @@ func (m FilterBoolModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case tea.KeyEnter.String():
-			m.input.Blur()
+			return m, m.Confirm
 		case tea.KeyEsc.String():
 			return m, m.Cancel
 		case "y", "Y":
@@ -69,5 +69,5 @@ func (m FilterBoolModel) Cancel() tea.Msg {
 }
 
 func (m FilterBoolModel) Confirm() tea.Msg {
-	return messages.NewConfirmFilterMsg(structs.NewFilterBool(m.Tab, m.Title, m.GetValue()))
+	return messages.NewAddFilterMsg(structs.NewFilterBool(m.Tab, m.Title, m.GetValue()))
 }

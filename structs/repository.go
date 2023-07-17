@@ -6,22 +6,6 @@ import (
 	"time"
 )
 
-// type SettingValue interface {
-// 	bool | string | time.Time | int
-// }
-
-// type SettingGetter interface {
-// 	GetName() string
-// 	String() string
-// 	GetType() reflect.Type
-// }
-
-// type Setting[T SettingValue] struct {
-// 	Name  string
-// 	Value T
-// 	Type  reflect.Type
-// }
-
 type Setting struct {
 	Name  string
 	Value interface{}
@@ -48,35 +32,6 @@ func (s Setting) String() string {
 func NewSetting(name string, value interface{}) Setting {
 	return Setting{Name: name, Value: value, Type: reflect.TypeOf(value)}
 }
-
-// func NewSetting[T SettingValue](name string, value T) Setting[T] {
-// 	return Setting[T]{Name: name, Value: value, Type: reflect.TypeOf(value)}
-// }
-
-// func (s Setting[T]) String() string {
-// 	formattedValue := ""
-
-// 	switch value := any(s.Value).(type) {
-// 	case bool:
-// 		formattedValue = YesNo(value)
-// 	case string:
-// 		formattedValue = value
-// 	case time.Time:
-// 		formattedValue = value.Format("2006/01/02")
-// 	case int:
-// 		formattedValue = fmt.Sprint(value)
-// 	}
-
-// 	return formattedValue
-// }
-
-// func (s Setting[T]) GetName() string {
-// 	return s.Name
-// }
-
-// func (s Setting[T]) GetType() reflect.Type {
-// 	return s.Type
-// }
 
 type Repository struct {
 	Name         string

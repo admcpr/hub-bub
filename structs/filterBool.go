@@ -23,3 +23,11 @@ func (f FilterBool) GetName() string {
 func (f FilterBool) GetType() reflect.Type {
 	return reflect.TypeOf(f.Value)
 }
+
+func (f FilterBool) Matches(setting Setting) bool {
+	if setting.Type != reflect.TypeOf(f.Value) {
+		return false
+	}
+
+	return setting.Value.(bool) == f.Value
+}

@@ -3,7 +3,8 @@ package consts
 type FilterAction int
 
 const (
-	FilterConfirm FilterAction = iota
+	FilterAdd FilterAction = iota
+	FilterConfirm
 	FilterDelete
 	FilterCancel
 )

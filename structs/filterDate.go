@@ -27,3 +27,13 @@ func (f FilterDate) GetName() string {
 func (f FilterDate) GetType() reflect.Type {
 	return reflect.TypeOf(f.From)
 }
+
+func (f FilterDate) Matches(setting Setting) bool {
+	if setting.Type != reflect.TypeOf(f.From) {
+		return false
+	}
+
+	date := setting.Value.(time.Time)
+
+	return date.After(f.From) && date.Before(f.To)
+}

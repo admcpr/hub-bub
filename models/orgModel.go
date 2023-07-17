@@ -20,7 +20,7 @@ import (
 
 type OrgModel struct {
 	Title   string
-	Filters []structs.RepositoryFilter
+	Filters []structs.Filter
 
 	Repositories []structs.Repository
 
@@ -54,7 +54,7 @@ func NewOrgModel(title string, width, height int) OrgModel {
 		keys:      keyMaps.NewOrgKeyMap(),
 		repoModel: NewRepoModel(width/2, height),
 		repoList:  list.New([]list.Item{}, list.NewDefaultDelegate(), width/2, height),
-		Filters:   []structs.RepositoryFilter{},
+		Filters:   []structs.Filter{},
 		getting:   true,
 		spinner:   spinner.New(spinner.WithSpinner(spinner.Pulse)),
 	}
@@ -69,9 +69,9 @@ func (m *OrgModel) FilteredRepositories() []structs.Repository {
 	for _, repo := range m.Repositories {
 		for _, filter := range m.Filters {
 			for _, tab := range repo.SettingsTabs {
-				if tab.Name == filter.Tab {
+				if tab.Name == filter.GetTab() {
 					for _, setting := range tab.Settings {
-						if setting.Name == filter.Setting.Name && setting.String() == filter.Setting.String() {
+						if setting.Name == filter.GetName() && filter.Matches(setting) {
 							filteredRepos = append(filteredRepos, repo)
 						}
 					}
@@ -111,8 +111,6 @@ func (m *OrgModel) UpdateRepoList() {
 	list.SetShowTitle(true)
 
 	m.repoList = list
-
-	//m.repoModel.SelectRepo(m.Repositories[0], half(m.width), m.height)
 }
 
 func (m *OrgModel) helpView() string {
@@ -128,69 +126,67 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 
+	// Window size changed
 	case tea.WindowSizeMsg:
 		if !m.loaded {
 			m.loaded = true
 		}
-		return m, nil
+
+	case messages.FocusMessage:
+		m.focus = msg.Focus
 
 	case messages.RepoListMsg:
 		m.UpdateRepositories(msg.OrganizationQuery)
 		m.repoModel, _ = m.repoModel.Update(m.NewRepoSelectMsg())
-		return m, nil
 
 	case tea.KeyMsg:
-		// Handle navigation Enter, Esc to select, deselect
 		switch msg.Type {
 		case tea.KeyEnter:
-			//Enter selects so we can navigate to the next focus
-			m.focus = m.focus.Next()
-			m.repoModel, _ = m.repoModel.Update(messages.NewFocusMsg(m.focus))
+			// If we're focussed on the list and we're not filtering, we want to focus on the repo model
+			if m.focus == consts.FocusList {
+				if !m.repoList.SettingFilter() {
+					m.focus = consts.FocusTabs
+					return m, nil
+				}
+			}
 		case tea.KeyEsc:
-			// Esc goes back so we can navigate to the previous focus, or go to the previous model
+			// Esc goes back so go to the previous model if we're focussed on the list
 			if m.focus == consts.FocusList {
 				if !m.repoList.SettingFilter() {
 					return MainModel[consts.UserModelName], nil
 				}
 			}
-			m.focus = m.focus.Prev()
-			m.repoModel, _ = m.repoModel.Update(messages.NewFocusMsg(m.focus))
 		case tea.KeyCtrlC:
 			return m, tea.Quit
-		default:
-			switch m.focus {
-			case consts.FocusList:
-				var tabCmd tea.Cmd
-
-				m, cmd = m.UpdateList(msg)
-				m.repoModel, tabCmd = m.repoModel.Update(m.NewRepoSelectMsg())
-				return m, tea.Batch(cmd, tabCmd)
-			case consts.FocusTabs, consts.FocusFilter:
-				m, cmd = m.UpdateTabs(msg)
-			}
 		}
+		switch m.focus {
+		case consts.FocusList:
+			var tabCmd tea.Cmd
 
+			m.repoList, cmd = m.repoList.Update(msg)
+			m.repoModel, tabCmd = m.repoModel.Update(m.NewRepoSelectMsg())
+			return m, tea.Batch(cmd, tabCmd)
+		case consts.FocusTabs, consts.FocusFilter:
+			m.repoModel, cmd = m.repoModel.Update(msg)
+		}
+	case messages.FilterMsg:
+		switch msg.Action {
+		case consts.FilterDelete:
+			// Remove the filter from the list
+			for i, filter := range m.Filters {
+				if filter.GetTab() == msg.Filter.GetTab() && filter.GetName() == msg.Filter.GetName() {
+					m.Filters = append(m.Filters[:i], m.Filters[i+1:]...)
+				}
+			}
+		case consts.FilterAdd:
+			m.Filters = append(m.Filters, msg.Filter)
+			m.repoList, cmd = m.repoList.Update(msg)
+		}
 	}
 
 	if m.getting {
 		m.spinner, cmd = m.spinner.Update(msg)
 	}
-
-	return m, cmd
-}
-
-func (m OrgModel) UpdateList(msg tea.KeyMsg) (OrgModel, tea.Cmd) {
-	var cmd tea.Cmd
-
-	m.repoList, cmd = m.repoList.Update(msg)
-
-	return m, cmd
-}
-
-func (m OrgModel) UpdateTabs(msg tea.KeyMsg) (OrgModel, tea.Cmd) {
-	var cmd tea.Cmd
-
-	m.repoModel, cmd = m.repoModel.Update(msg)
 
 	return m, cmd
 }
