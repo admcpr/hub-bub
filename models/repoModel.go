@@ -65,23 +65,21 @@ func (m *RepoModel) SelectTab(index int) {
 	m.settingsTable = NewSettingsTable(m.repository.SettingsTabs[m.activeTab].Settings, m.width)
 }
 
-func (m *RepoModel) ToggleFilterEditor() {
-	if !m.showFilterEditor {
-		tab := m.repository.SettingsTabs[m.activeTab]
-		index := m.settingsTable.Cursor()
-		setting := tab.Settings[index]
+func (m *RepoModel) InitFilterEditor() {
+	tab := m.repository.SettingsTabs[m.activeTab]
+	index := m.settingsTable.Cursor()
+	setting := tab.Settings[index]
 
-		switch value := setting.Value.(type) {
-		case bool:
-			m.FilterModel = NewFilterBoolModel(tab.Name, setting.Name, value)
-		case int:
-			m.FilterModel = NewFilterIntModel(tab.Name, setting.Name, value, value)
-		case time.Time:
-			m.FilterModel = NewFilterDateModel(tab.Name, setting.Name, value, value)
-		}
+	switch value := setting.Value.(type) {
+	case bool:
+		m.FilterModel = NewFilterBoolModel(tab.Name, setting.Name, value)
+	case int:
+		m.FilterModel = NewFilterIntModel(tab.Name, setting.Name, value, value)
+	case time.Time:
+		m.FilterModel = NewFilterDateModel(tab.Name, setting.Name, value, value)
 	}
 
-	m.showFilterEditor = !m.showFilterEditor
+	m.showFilterEditor = true
 }
 
 func (m RepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -134,7 +132,7 @@ func (m RepoModel) UpdateRepoModel(keyType tea.KeyType) (RepoModel, tea.Cmd) {
 	case tea.KeyEnter:
 		// Validate the filter and if it's good send a message
 		if !m.showFilterEditor {
-			m.ToggleFilterEditor()
+			m.InitFilterEditor()
 		}
 	case tea.KeyEsc:
 		m.showFilterEditor = false
