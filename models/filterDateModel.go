@@ -82,6 +82,11 @@ func (m FilterDateModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch msg.String() {
+		case tea.KeyEnter.String():
+			// TODO: validate
+			return m, m.SendAddFilterMsg
+		case tea.KeyEsc.String():
+			return m, m.SendCancelFilterMsg
 		case tea.KeyTab.String():
 			if m.fromInput.Focused() {
 				m.fromInput.Blur()
@@ -134,11 +139,11 @@ func (m *FilterDateModel) GetValue() (time.Time, time.Time, error) {
 	return from, to, nil
 }
 
-func (m FilterDateModel) Cancel() tea.Msg {
+func (m FilterDateModel) SendCancelFilterMsg() tea.Msg {
 	return messages.NewCancelFilterMsg(structs.NewFilterDate(m.Tab, m.Title, time.Now(), time.Now()))
 }
 
-func (m FilterDateModel) Confirm() tea.Msg {
+func (m FilterDateModel) SendAddFilterMsg() tea.Msg {
 	from, to, _ := m.GetValue()
 
 	return messages.NewAddFilterMsg(structs.NewFilterDate(m.Tab, m.Title, from, to))

@@ -60,8 +60,10 @@ func (m FilterIntModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch msg.String() {
+		case tea.KeyEnter.String():
+			return m, m.SendAddFilterMsg
 		case tea.KeyEsc.String():
-			return m, m.Cancel
+			return m, m.SendCancelFilterMsg
 		case tea.KeyTab.String():
 			if m.fromInput.Focused() {
 				m.fromInput.Blur()
@@ -92,11 +94,11 @@ func (m *FilterIntModel) GetValue() (int, int) {
 	return from, to
 }
 
-func (m FilterIntModel) Cancel() tea.Msg {
+func (m FilterIntModel) SendCancelFilterMsg() tea.Msg {
 	return messages.NewCancelFilterMsg(structs.NewFilterInt(m.Tab, m.Title, 0, 0))
 }
 
-func (m FilterIntModel) Confirm() tea.Msg {
+func (m FilterIntModel) SendAddFilterMsg() tea.Msg {
 	from, to := m.GetValue()
 
 	return messages.NewAddFilterMsg(structs.NewFilterInt(m.Tab, m.Title, from, to))

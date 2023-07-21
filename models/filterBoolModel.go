@@ -39,9 +39,9 @@ func (m FilterBoolModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case tea.KeyEnter.String():
-			return m, m.Confirm
+			return m, m.SendAddFilterMsg
 		case tea.KeyEsc.String():
-			return m, m.Cancel
+			return m, m.SendCancelFilterMsg
 		case "y", "Y":
 			m.input.SetValue("Yes")
 		case "n", "N":
@@ -64,10 +64,10 @@ func (m *FilterBoolModel) Focus() tea.Cmd {
 	return m.input.Focus()
 }
 
-func (m FilterBoolModel) Cancel() tea.Msg {
+func (m FilterBoolModel) SendCancelFilterMsg() tea.Msg {
 	return messages.NewCancelFilterMsg(structs.NewFilterBool(m.Tab, m.Title, false))
 }
 
-func (m FilterBoolModel) Confirm() tea.Msg {
+func (m FilterBoolModel) SendAddFilterMsg() tea.Msg {
 	return messages.NewAddFilterMsg(structs.NewFilterBool(m.Tab, m.Title, m.GetValue()))
 }
