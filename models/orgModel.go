@@ -65,21 +65,29 @@ func (m *OrgModel) FilteredRepositories() []structs.Repository {
 		return m.Repositories
 	}
 	filteredRepos := []structs.Repository{}
-	// TODO: This is gonna get slow, fast, for big orgs. Faster pls.
 	for _, repo := range m.Repositories {
-		for _, filter := range m.Filters {
-			for _, tab := range repo.SettingsTabs {
-				if tab.Name == filter.GetTab() {
-					for _, setting := range tab.Settings {
-						if setting.Name == filter.GetName() && filter.Matches(setting) {
-							filteredRepos = append(filteredRepos, repo)
-						}
+		if RepoMatchesFilters(repo, m.Filters) {
+			filteredRepos = append(filteredRepos, repo)
+		}
+	}
+	return filteredRepos
+}
+
+func RepoMatchesFilters(repo structs.Repository, filters []structs.Filter) bool {
+	// TODO: This is gonna get slow, fast, for big orgs. Faster pls.
+	// TODO: Obviously this is also buggy if there are multiple filters, it'll only check the first one
+	for _, filter := range filters {
+		for _, tab := range repo.SettingsTabs {
+			if tab.Name == filter.GetTab() {
+				for _, setting := range tab.Settings {
+					if setting.Name == filter.GetName() {
+						return filter.Matches(setting)
 					}
 				}
 			}
 		}
 	}
-	return filteredRepos
+	return false
 }
 
 func (m *OrgModel) UpdateRepositories(oq structs.OrganizationQuery) {
@@ -179,7 +187,7 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case consts.FilterAdd:
-			m.Filters = append(m.Filters, msg.Filter)
+			m.Filters = []structs.Filter{msg.Filter}
 			m.UpdateRepoList()
 			m.repoModel, cmd = m.repoModel.Update(messages.NewConfirmFilterMsg(nil))
 		}
