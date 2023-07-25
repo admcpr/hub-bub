@@ -6,6 +6,7 @@ import (
 	"hub-bub/consts"
 	"hub-bub/messages"
 	"hub-bub/structs"
+	"hub-bub/style"
 
 	"github.com/cli/go-gh"
 
@@ -106,7 +107,7 @@ func (m UserModel) View() string {
 		return fmt.Sprintf("%s Authenticating with github", m.spinner.View())
 	}
 
-	return appStyle.Render(m.list.View())
+	return style.AppStyle.Render(m.list.View())
 }
 
 func buildOrgListModel(organisations []structs.Organisation, width, height int, user structs.User) list.Model {
@@ -115,11 +116,11 @@ func buildOrgListModel(organisations []structs.Organisation, width, height int, 
 		items[i] = structs.NewListItem(org.Login, org.Url)
 	}
 
-	list := list.New(items, defaultDelegate, width, height-2)
+	list := list.New(items, style.DefaultDelegate, width, height-2)
 
 	list.Title = "User: " + user.Name
 	list.SetStatusBarItemName("Organisation", "Organisations")
-	list.Styles.Title = titleStyle
+	list.Styles.Title = style.TitleStyle
 	list.SetShowTitle(true)
 
 	return list

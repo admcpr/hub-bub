@@ -8,6 +8,7 @@ import (
 	"hub-bub/keyMaps"
 	"hub-bub/messages"
 	"hub-bub/structs"
+	"hub-bub/style"
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/list"
@@ -111,9 +112,9 @@ func (m *OrgModel) UpdateRepoList() {
 		items[i] = structs.NewListItem(repo.Name, repo.Url)
 	}
 
-	list := list.New(items, defaultDelegate, m.width, m.height-2)
+	list := list.New(items, style.DefaultDelegate, m.width, m.height-2)
 	list.Title = "Organization: " + m.Title
-	list.Styles.Title = titleStyle
+	list.Styles.Title = style.TitleStyle
 	list.SetStatusBarItemName("Repository", "Repositories")
 	list.SetShowHelp(false)
 	list.SetShowTitle(true)
@@ -205,8 +206,8 @@ func (m OrgModel) View() string {
 		return fmt.Sprintf("%s getting repos ...", m.spinner.View())
 	}
 
-	var repoList = appStyle.Width(half(m.width)).Render(m.repoList.View())
-	var settings = appStyle.Width(half(m.width)).Render(m.repoModel.View())
+	var repoList = style.AppStyle.Width(half(m.width)).Render(m.repoList.View())
+	var settings = style.AppStyle.Width(half(m.width)).Render(m.repoModel.View())
 	help := m.helpView()
 	var rightPanel = lipgloss.JoinVertical(lipgloss.Center, settings, help)
 

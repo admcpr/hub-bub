@@ -1,4 +1,4 @@
-package models
+package filters
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ func TestNewFilterIntModel(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
-			m := NewFilterIntModel(tt.tab, tt.title, tt.from, tt.to)
+			m := NewIntModel(tt.tab, tt.title, tt.from, tt.to)
 
 			assert.Equal(t, m.Tab, tt.tab)
 			assert.Equal(t, m.Title, tt.title)

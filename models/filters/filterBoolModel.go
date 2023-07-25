@@ -1,4 +1,4 @@
-package models
+package filters
 
 import (
 	"hub-bub/messages"
@@ -8,14 +8,14 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type FilterBoolModel struct {
+type BoolModel struct {
 	Tab   string
 	Title string
 	input textinput.Model
 }
 
-func NewFilterBoolModel(tab, title string, value bool) FilterBoolModel {
-	m := FilterBoolModel{
+func NewBoolModel(tab, title string, value bool) BoolModel {
+	m := BoolModel{
 		Tab:   tab,
 		Title: title,
 		input: textinput.New(),
@@ -27,11 +27,11 @@ func NewFilterBoolModel(tab, title string, value bool) FilterBoolModel {
 	return m
 }
 
-func (m FilterBoolModel) Init() tea.Cmd {
+func (m BoolModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m FilterBoolModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m BoolModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
@@ -40,8 +40,6 @@ func (m FilterBoolModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case tea.KeyEnter.String():
 			return m, m.SendAddFilterMsg
-		case tea.KeyEsc.String():
-			return m, m.SendCancelFilterMsg
 		case "y", "Y":
 			m.input.SetValue("Yes")
 		case "n", "N":
@@ -52,22 +50,18 @@ func (m FilterBoolModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m FilterBoolModel) View() string {
+func (m BoolModel) View() string {
 	return m.Title + " " + m.input.View()
 }
 
-func (m *FilterBoolModel) GetValue() bool {
+func (m *BoolModel) GetValue() bool {
 	return m.input.Value() == "Yes"
 }
 
-func (m *FilterBoolModel) Focus() tea.Cmd {
+func (m *BoolModel) Focus() tea.Cmd {
 	return m.input.Focus()
 }
 
-func (m FilterBoolModel) SendCancelFilterMsg() tea.Msg {
-	return messages.NewCancelFilterMsg(structs.NewFilterBool(m.Tab, m.Title, false))
-}
-
-func (m FilterBoolModel) SendAddFilterMsg() tea.Msg {
+func (m BoolModel) SendAddFilterMsg() tea.Msg {
 	return messages.NewAddFilterMsg(structs.NewFilterBool(m.Tab, m.Title, m.GetValue()))
 }

@@ -1,4 +1,4 @@
-package models
+package filters
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type FilterIntModel struct {
+type IntModel struct {
 	Tab       string
 	Title     string
 	fromInput textinput.Model
@@ -26,8 +26,8 @@ func intValidator(s, prompt string) error {
 	return nil
 }
 
-func NewFilterIntModel(tab, title string, from, to int) FilterIntModel {
-	m := FilterIntModel{
+func NewIntModel(tab, title string, from, to int) IntModel {
+	m := IntModel{
 		Tab:       tab,
 		Title:     title,
 		fromInput: textinput.New(),
@@ -49,11 +49,11 @@ func NewFilterIntModel(tab, title string, from, to int) FilterIntModel {
 	return m
 }
 
-func (m FilterIntModel) Init() tea.Cmd {
+func (m IntModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m FilterIntModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m IntModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
@@ -62,8 +62,6 @@ func (m FilterIntModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case tea.KeyEnter.String():
 			return m, m.SendAddFilterMsg
-		case tea.KeyEsc.String():
-			return m, m.SendCancelFilterMsg
 		case tea.KeyTab.String():
 			if m.fromInput.Focused() {
 				m.fromInput.Blur()
@@ -84,21 +82,17 @@ func (m FilterIntModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m FilterIntModel) View() string {
+func (m IntModel) View() string {
 	return m.Title + " " + m.fromInput.View() + " " + m.toInput.View()
 }
 
-func (m *FilterIntModel) GetValue() (int, int) {
+func (m *IntModel) GetValue() (int, int) {
 	from, _ := strconv.Atoi(m.fromInput.Value())
 	to, _ := strconv.Atoi(m.toInput.Value())
 	return from, to
 }
 
-func (m FilterIntModel) SendCancelFilterMsg() tea.Msg {
-	return messages.NewCancelFilterMsg(structs.NewFilterInt(m.Tab, m.Title, 0, 0))
-}
-
-func (m FilterIntModel) SendAddFilterMsg() tea.Msg {
+func (m IntModel) SendAddFilterMsg() tea.Msg {
 	from, to := m.GetValue()
 
 	return messages.NewAddFilterMsg(structs.NewFilterInt(m.Tab, m.Title, from, to))

@@ -4,7 +4,9 @@ import (
 	"hub-bub/consts"
 	"hub-bub/keyMaps"
 	"hub-bub/messages"
+	"hub-bub/models/filters"
 	"hub-bub/structs"
+	"hub-bub/style"
 	"time"
 
 	"github.com/charmbracelet/bubbles/help"
@@ -72,11 +74,11 @@ func (m *RepoModel) InitFilterEditor() {
 
 	switch value := setting.Value.(type) {
 	case bool:
-		m.FilterModel = NewFilterBoolModel(tab.Name, setting.Name, value)
+		m.FilterModel = filters.NewBoolModel(tab.Name, setting.Name, value)
 	case int:
-		m.FilterModel = NewFilterIntModel(tab.Name, setting.Name, value, value)
+		m.FilterModel = filters.NewIntModel(tab.Name, setting.Name, value, value)
 	case time.Time:
-		m.FilterModel = NewFilterDateModel(tab.Name, setting.Name, value, value)
+		m.FilterModel = filters.NewDateModel(tab.Name, setting.Name, value, value)
 	}
 
 	m.showFilterEditor = true
@@ -96,17 +98,17 @@ func (m RepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEsc:
-			if m.showFilterEditor {
-				m.showFilterEditor = true
-				return m, cmd
-			} else {
+			if !m.showFilterEditor {
 				return m, FocusList
+			} else {
+				m.showFilterEditor = false
 			}
-		}
-		if m.showFilterEditor {
-			m.FilterModel, cmd = m.FilterModel.Update(msg)
-		} else {
-			m, cmd = m.UpdateRepoModel(msg.Type)
+		default:
+			if m.showFilterEditor {
+				m.FilterModel, cmd = m.FilterModel.Update(msg)
+			} else {
+				m, cmd = m.UpdateRepoModel(msg.Type)
+			}
 		}
 	case messages.FocusMessage:
 		switch msg.Focus {
@@ -155,8 +157,8 @@ func (m RepoModel) View() string {
 		return ""
 	}
 
-	settingsStyle := appStyle.Copy().Border(settingsBorder()).
-		BorderForeground(blueLighter).Padding(0).Margin(0)
+	settingsStyle := style.AppStyle.Copy().Border(settingsBorder()).
+		BorderForeground(style.BlueLighter).Padding(0).Margin(0)
 
 	var tabs = RenderTabs(m.repository.SettingsTabs, m.width, m.activeTab)
 	if m.showFilterEditor {
@@ -187,9 +189,9 @@ func NewSettingsTable(activeSettings []structs.Setting, width int) table.Model {
 
 func GetTableStyles() table.Styles {
 	return table.Styles{
-		Selected: lipgloss.NewStyle().Bold(true).Background(pink),
-		Header: lipgloss.NewStyle().Bold(true).Foreground(blue).BorderStyle(lipgloss.NormalBorder()).
-			BorderBottom(true).BorderForeground(blueLighter),
+		Selected: lipgloss.NewStyle().Bold(true).Background(style.Pink),
+		Header: lipgloss.NewStyle().Bold(true).Foreground(style.Blue).BorderStyle(lipgloss.NormalBorder()).
+			BorderBottom(true).BorderForeground(style.BlueLighter),
 		Cell: lipgloss.NewStyle().Padding(0),
 	}
 }

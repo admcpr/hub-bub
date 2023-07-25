@@ -1,4 +1,4 @@
-package models
+package filters
 
 import (
 	"hub-bub/structs"
@@ -21,7 +21,7 @@ func TestNewFilterBoolModel(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
-			m := NewFilterBoolModel(tt.tab, tt.title, tt.value)
+			m := NewBoolModel(tt.tab, tt.title, tt.value)
 
 			if m.Title != tt.title {
 				t.Errorf("got %q, want %q", m.Title, tt.title)
@@ -35,11 +35,11 @@ func TestNewFilterBoolModel(t *testing.T) {
 }
 
 func TestFilterBoolModel_Update(t *testing.T) {
-	trueModel := NewFilterBoolModel("Tab 1", "True", true)
-	falseModel := NewFilterBoolModel("Tab 1", "False", false)
+	trueModel := NewBoolModel("Tab 1", "True", true)
+	falseModel := NewBoolModel("Tab 1", "False", false)
 
 	tests := []struct {
-		model  FilterBoolModel
+		model  BoolModel
 		title  string
 		msgKey rune
 		want   bool
@@ -56,7 +56,7 @@ func TestFilterBoolModel_Update(t *testing.T) {
 			msg := tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune{tt.msgKey}}
 			m, _ := tt.model.Update(msg)
 
-			filterBooleanModel, _ := m.(FilterBoolModel)
+			filterBooleanModel, _ := m.(BoolModel)
 			got := filterBooleanModel.GetValue()
 
 			if got != tt.want {
