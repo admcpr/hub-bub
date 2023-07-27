@@ -2,10 +2,10 @@ package messages
 
 import "hub-bub/consts"
 
-type FocusMessage struct {
+type FocusMsg struct {
 	Focus consts.Focus
 }
 
-func NewFocusMsg(focus consts.Focus) FocusMessage {
-	return FocusMessage{Focus: focus}
+func NewFocusMsg(focus consts.Focus) FocusMsg {
+	return FocusMsg{Focus: focus}
 }

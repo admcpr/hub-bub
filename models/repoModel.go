@@ -24,12 +24,11 @@ type RepoModel struct {
 	help help.Model
 	keys keyMaps.RepoKeyMap
 
-	activeTab        int
-	showFilterEditor bool
-	loaded           bool
-	hasFocus         bool
-	width            int
-	height           int
+	activeTab int
+	focus     consts.Focus
+	loaded    bool
+	width     int
+	height    int
 }
 
 func NewRepoModel(width, height int) RepoModel {
@@ -42,16 +41,12 @@ func NewRepoModel(width, height int) RepoModel {
 	}
 }
 
-func (m RepoModel) HasFocus() bool {
-	return m.hasFocus
-}
-
-func (m *RepoModel) ToggleFocus() {
-	m.hasFocus = !m.hasFocus
-}
-
 func (m RepoModel) Init() tea.Cmd {
 	return nil
+}
+
+func (m *RepoModel) filterHasFocus() bool {
+	return m.focus == consts.FocusFilter
 }
 
 func (m *RepoModel) SelectRepo(repository structs.Repository, width, height int) {
@@ -80,8 +75,6 @@ func (m *RepoModel) InitFilterEditor() {
 	case time.Time:
 		m.FilterModel = filters.NewDateModel(tab.Name, setting.Name, value, value)
 	}
-
-	m.showFilterEditor = true
 }
 
 func (m RepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -98,29 +91,20 @@ func (m RepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEsc:
-			if !m.showFilterEditor {
-				return m, FocusList
-			} else {
-				m.showFilterEditor = false
-			}
+			return m, m.FocusList
 		default:
-			if m.showFilterEditor {
+			if m.filterHasFocus() {
 				m.FilterModel, cmd = m.FilterModel.Update(msg)
 			} else {
 				m, cmd = m.UpdateRepoModel(msg.Type)
 			}
 		}
-	case messages.FocusMessage:
-		switch msg.Focus {
-		case consts.FocusFilter:
-			m.showFilterEditor = true
-		case consts.FocusTabs:
-			m.showFilterEditor = false
-		}
+	case messages.FocusMsg:
+		m.focus = msg.Focus
 	case messages.FilterMsg:
 		switch msg.Action {
 		case consts.FilterConfirm:
-			m.showFilterEditor = false
+			cmd = m.FocusTabs
 		}
 	}
 
@@ -132,12 +116,12 @@ func (m RepoModel) UpdateRepoModel(keyType tea.KeyType) (RepoModel, tea.Cmd) {
 
 	switch keyType {
 	case tea.KeyEnter:
-		// Validate the filter and if it's good send a message
-		if !m.showFilterEditor {
+		if !m.filterHasFocus() {
 			m.InitFilterEditor()
+			cmd = m.FocusFilter
 		}
 	case tea.KeyEsc:
-		m.showFilterEditor = false
+		cmd = m.FocusList
 	case tea.KeyRight:
 		m.SelectTab(min(m.activeTab+1, len(m.repository.SettingsTabs)-1))
 	case tea.KeyLeft:
@@ -161,7 +145,7 @@ func (m RepoModel) View() string {
 		BorderForeground(style.BlueLighter).Padding(0).Margin(0)
 
 	var tabs = RenderTabs(m.repository.SettingsTabs, m.width, m.activeTab)
-	if m.showFilterEditor {
+	if m.filterHasFocus() {
 		filter := lipgloss.NewStyle().Width(m.width - 2).Height(m.height - 7).Render(m.FilterModel.View())
 		return lipgloss.JoinVertical(lipgloss.Left, tabs, filter)
 	} else {
@@ -196,6 +180,21 @@ func GetTableStyles() table.Styles {
 	}
 }
 
-func FocusList() tea.Msg {
-	return messages.FocusMessage{Focus: consts.FocusList}
+func (m *RepoModel) SendFocusMsg() tea.Msg {
+	return messages.NewFocusMsg(m.focus)
+}
+
+func (m *RepoModel) FocusFilter() tea.Msg {
+	m.focus = consts.FocusFilter
+	return m.SendFocusMsg()
+}
+
+func (m *RepoModel) FocusTabs() tea.Msg {
+	m.focus = consts.FocusTabs
+	return m.SendFocusMsg()
+}
+
+func (m *RepoModel) FocusList() tea.Msg {
+	m.focus = consts.FocusList
+	return m.SendFocusMsg()
 }

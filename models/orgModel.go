@@ -30,6 +30,8 @@ type OrgModel struct {
 	help      help.Model
 	keys      keyMaps.OrgKeyMap
 
+	// Focus is the current focus of the model
+	// We should pass this to the repo model so it can update its focus
 	focus   consts.Focus
 	width   int
 	height  int
@@ -126,6 +128,10 @@ func (m *OrgModel) helpView() string {
 	return m.help.View(m.keys)
 }
 
+func (m *OrgModel) listFocusedAndNotFiltering() bool {
+	return m.focus == consts.FocusList && !m.repoList.SettingFilter()
+}
+
 func (m OrgModel) Init() tea.Cmd {
 	return m.spinner.Tick
 }
@@ -141,7 +147,7 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.loaded = true
 		}
 
-	case messages.FocusMessage:
+	case messages.FocusMsg:
 		m.focus = msg.Focus
 
 	case messages.RepoListMsg:
@@ -152,18 +158,14 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.Type {
 		case tea.KeyEnter:
 			// If we're focussed on the list and we're not filtering, we want to focus on the repo model
-			if m.focus == consts.FocusList {
-				if !m.repoList.SettingFilter() {
-					m.focus = consts.FocusTabs
-					return m, nil
-				}
+			if m.listFocusedAndNotFiltering() {
+				m.focus = m.focus.Next()
+				return m, nil
 			}
 		case tea.KeyEsc:
 			// Esc goes back so go to the previous model if we're focussed on the list
-			if m.focus == consts.FocusList {
-				if !m.repoList.SettingFilter() {
-					return MainModel[consts.UserModelName], nil
-				}
+			if m.listFocusedAndNotFiltering() {
+				return MainModel[consts.UserModelName], nil
 			}
 		case tea.KeyCtrlC:
 			return m, tea.Quit
