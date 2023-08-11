@@ -104,7 +104,8 @@ func (m RepoModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case messages.FilterMsg:
 		switch msg.Action {
 		case consts.FilterConfirm:
-			cmd = m.FocusTabs
+			m.focus = consts.FocusTabs
+			cmd = m.SendFocusMsg
 		}
 	}
 
@@ -118,7 +119,8 @@ func (m RepoModel) UpdateRepoModel(keyType tea.KeyType) (RepoModel, tea.Cmd) {
 	case tea.KeyEnter:
 		if !m.filterHasFocus() {
 			m.InitFilterEditor()
-			cmd = m.FocusFilter
+			m.focus = consts.FocusFilter
+			cmd = m.SendFocusMsg
 		}
 	case tea.KeyEsc:
 		cmd = m.FocusList
@@ -182,16 +184,6 @@ func GetTableStyles() table.Styles {
 
 func (m *RepoModel) SendFocusMsg() tea.Msg {
 	return messages.NewFocusMsg(m.focus)
-}
-
-func (m *RepoModel) FocusFilter() tea.Msg {
-	m.focus = consts.FocusFilter
-	return m.SendFocusMsg()
-}
-
-func (m *RepoModel) FocusTabs() tea.Msg {
-	m.focus = consts.FocusTabs
-	return m.SendFocusMsg()
 }
 
 func (m *RepoModel) FocusList() tea.Msg {

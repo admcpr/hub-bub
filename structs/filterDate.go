@@ -37,3 +37,7 @@ func (f FilterDate) Matches(setting Setting) bool {
 
 	return date.After(f.From) && date.Before(f.To)
 }
+
+func (f FilterDate) String() string {
+	return f.Name
+}

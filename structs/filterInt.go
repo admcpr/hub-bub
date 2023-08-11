@@ -34,3 +34,7 @@ func (f FilterInt) Matches(setting Setting) bool {
 
 	return value >= f.From && value <= f.To
 }
+
+func (f FilterInt) String() string {
+	return f.Name
+}

@@ -31,3 +31,7 @@ func (f FilterBool) Matches(setting Setting) bool {
 
 	return setting.Value.(bool) == f.Value
 }
+
+func (f FilterBool) String() string {
+	return f.Name
+}

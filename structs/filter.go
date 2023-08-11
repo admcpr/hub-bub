@@ -7,4 +7,5 @@ type Filter interface {
 	GetName() string
 	GetType() reflect.Type
 	Matches(setting Setting) bool
+	String() string
 }
