@@ -3,13 +3,14 @@ package models
 import (
 	"fmt"
 
+	"hub-bub/consts"
 	"hub-bub/messages"
 	"hub-bub/structs"
+	"hub-bub/style"
 
 	"github.com/cli/go-gh"
 
 	"github.com/charmbracelet/bubbles/list"
-	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -22,7 +23,6 @@ type UserModel struct {
 	loaded         bool
 	width          int
 	height         int
-	spinner        spinner.Model
 }
 
 func NewUserModel() UserModel {
@@ -34,12 +34,11 @@ func NewUserModel() UserModel {
 			0,
 			0,
 		),
-		spinner: spinner.New(spinner.WithSpinner(spinner.Pulse)),
 	}
 }
 
 func (m UserModel) Init() tea.Cmd {
-	return tea.Batch(checkLoginStatus, m.spinner.Tick)
+	return checkLoginStatus
 }
 
 func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -75,21 +74,17 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case tea.KeyMsg:
 		switch msg.String() {
-		case "ctrl+c", "q":
+		case "ctrl+c":
 			return m, tea.Quit
 		case "enter", " ":
-			MainModel[UserModelName] = m
+			MainModel[consts.UserModelName] = m
 			item := m.list.SelectedItem()
 			orgModel := NewOrgModel(item.(structs.ListItem).Title(), m.width, m.height)
 
-			MainModel[OrganisationModelName] = orgModel
+			MainModel[consts.OrganisationModelName] = orgModel
 
 			return orgModel, orgModel.GetRepositories
 		}
-
-	default:
-		m.spinner, cmd = m.spinner.Update(msg)
-		return m, cmd
 	}
 
 	m.list, cmd = m.list.Update(msg)
@@ -102,10 +97,10 @@ func (m UserModel) View() string {
 		return fmt.Sprintln("You are not authenticated try running `gh auth login`. Press q to quit.")
 	}
 	if m.Authenticating {
-		return fmt.Sprintf("%s Authenticating with github", m.spinner.View())
+		return "Authenticating with github ..."
 	}
 
-	return appStyle.Render(m.list.View())
+	return style.AppStyle.Render(m.list.View())
 }
 
 func buildOrgListModel(organisations []structs.Organisation, width, height int, user structs.User) list.Model {
@@ -114,11 +109,11 @@ func buildOrgListModel(organisations []structs.Organisation, width, height int, 
 		items[i] = structs.NewListItem(org.Login, org.Url)
 	}
 
-	list := list.New(items, defaultDelegate, width, height-2)
+	list := list.New(items, style.DefaultDelegate, width, height-2)
 
 	list.Title = "User: " + user.Name
 	list.SetStatusBarItemName("Organisation", "Organisations")
-	list.Styles.Title = titleStyle
+	list.Styles.Title = style.TitleStyle
 	list.SetShowTitle(true)
 
 	return list

@@ -4,6 +4,8 @@ import (
 	"hub-bub/structs"
 )
 
-type RepoSelectedMsg struct {
-	RepositoryQuery structs.RepositoryQuery
+type RepoSelectMsg struct {
+	Repository structs.Repository
+	Width      int
+	Height     int
 }

@@ -1,7 +1,10 @@
-package models
+package filters
 
 import (
 	"fmt"
+	"hub-bub/messages"
+	"hub-bub/structs"
+	"hub-bub/style"
 	"strconv"
 	"strings"
 	"time"
@@ -10,7 +13,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type FilterDateModel struct {
+type DateModel struct {
+	Tab       string
 	Title     string
 	fromInput textinput.Model
 	toInput   textinput.Model
@@ -45,8 +49,9 @@ func dateValidator(s, prompt string) error {
 	return nil
 }
 
-func NewFilterDateModel(title string, from, to time.Time) FilterDateModel {
-	m := FilterDateModel{
+func NewDateModel(tab, title string, from, to time.Time) DateModel {
+	m := DateModel{
+		Tab:       tab,
 		Title:     title,
 		fromInput: textinput.New(),
 		toInput:   textinput.New(),
@@ -67,17 +72,20 @@ func NewFilterDateModel(title string, from, to time.Time) FilterDateModel {
 	return m
 }
 
-func (m FilterDateModel) Init() tea.Cmd {
+func (m DateModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-func (m FilterDateModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m DateModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
 
 	case tea.KeyMsg:
 		switch msg.String() {
+		case tea.KeyEnter.String():
+			// TODO: validate
+			return m, m.SendAddFilterMsg
 		case tea.KeyTab.String():
 			if m.fromInput.Focused() {
 				m.fromInput.Blur()
@@ -98,22 +106,22 @@ func (m FilterDateModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m FilterDateModel) View() string {
+func (m DateModel) View() string {
 	errorText := ""
 	if m.fromInput.Err != nil {
-		errorText = "\n" + errorStyle.Render(m.fromInput.Err.Error())
+		errorText = "\n" + style.ErrorStyle.Render(m.fromInput.Err.Error())
 	}
 	if m.toInput.Err != nil {
-		errorText = "\n" + errorStyle.Render(m.toInput.Err.Error())
+		errorText = "\n" + style.ErrorStyle.Render(m.toInput.Err.Error())
 	}
 	return m.Title + " " + m.fromInput.View() + " " + m.toInput.View() + errorText
 }
 
-func (m *FilterDateModel) Focus() tea.Cmd {
+func (m *DateModel) Focus() tea.Cmd {
 	return m.fromInput.Focus()
 }
 
-func (m *FilterDateModel) GetValue() (time.Time, time.Time, error) {
+func (m *DateModel) GetValue() (time.Time, time.Time, error) {
 	fromError := m.fromInput.Validate(m.fromInput.Value())
 	if fromError != nil {
 		return time.Time{}, time.Time{}, fromError
@@ -128,4 +136,10 @@ func (m *FilterDateModel) GetValue() (time.Time, time.Time, error) {
 	to, _ := time.Parse("2006-01-02", m.toInput.Value())
 
 	return from, to, nil
+}
+
+func (m DateModel) SendAddFilterMsg() tea.Msg {
+	from, to, _ := m.GetValue()
+
+	return messages.NewAddFilterMsg(structs.NewFilterDate(m.Tab, m.Title, from, to))
 }

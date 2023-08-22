@@ -2,6 +2,7 @@ package models
 
 import (
 	"hub-bub/structs"
+	"hub-bub/style"
 
 	"github.com/charmbracelet/lipgloss"
 )
@@ -9,7 +10,7 @@ import (
 func RenderTabs(tabSettings []structs.SettingsTab, width, activeTab int) string {
 	inactiveTabBorder := tabBorderWithBottom("┴", "─", "┴")
 	activeTabBorder := tabBorderWithBottom("┘", " ", "└")
-	inactiveTabStyle := lipgloss.NewStyle().Border(inactiveTabBorder, true).BorderForeground(blueLighter).Padding(0)
+	inactiveTabStyle := lipgloss.NewStyle().Border(inactiveTabBorder, true).BorderForeground(style.BlueLighter).Padding(0)
 	activeTabStyle := inactiveTabStyle.Copy().Border(activeTabBorder, true)
 
 	tabs := []string{}
@@ -22,14 +23,14 @@ func RenderTabs(tabSettings []structs.SettingsTab, width, activeTab int) string 
 	var renderedTabs []string
 
 	for i, t := range tabs {
-		var style lipgloss.Style
+		var tabStyle lipgloss.Style
 		isFirst, isLast, isActive := i == 0, i == len(tabs)-1, i == activeTab
 		if isActive {
-			style = activeTabStyle.Copy()
+			tabStyle = activeTabStyle.Copy()
 		} else {
-			style = inactiveTabStyle.Copy()
+			tabStyle = inactiveTabStyle.Copy()
 		}
-		border, _, _, _, _ := style.GetBorder()
+		border, _, _, _, _ := tabStyle.GetBorder()
 		if isFirst && isActive {
 			border.BottomLeft = "│"
 		} else if isFirst && !isActive {
@@ -40,19 +41,19 @@ func RenderTabs(tabSettings []structs.SettingsTab, width, activeTab int) string 
 			border.BottomRight = "┤"
 		}
 
-		style = style.Border(border).Align(lipgloss.Center).MaxHeight(3)
+		tabStyle = tabStyle.Border(border).Align(lipgloss.Center).MaxHeight(3)
 
 		if i == activeTab {
-			style = style.Foreground(pink)
+			tabStyle = tabStyle.Foreground(style.Pink)
 		}
 
 		if isLast {
-			style = style.Width(tabWidth + (width % len(tabs)))
+			tabStyle = tabStyle.Width(tabWidth + (width % len(tabs)))
 		} else {
-			style = style.Width(tabWidth)
+			tabStyle = tabStyle.Width(tabWidth)
 		}
 
-		renderedTabs = append(renderedTabs, style.Render(t))
+		renderedTabs = append(renderedTabs, tabStyle.Render(t))
 	}
 
 	row := lipgloss.JoinHorizontal(lipgloss.Top, renderedTabs...)

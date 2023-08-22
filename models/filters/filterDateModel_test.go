@@ -1,4 +1,4 @@
-package models
+package filters
 
 import (
 	"fmt"
@@ -29,6 +29,7 @@ import (
 // }
 
 func TestNewFilterDateModel(t *testing.T) {
+	const tab = "Tab"
 	const title = "Title"
 	fromString := "2022-01-01"
 	toString := "2022-12-31"
@@ -36,7 +37,8 @@ func TestNewFilterDateModel(t *testing.T) {
 	to, _ := time.Parse("2006-01-02", toString)
 
 	t.Run("NewFilterDateModel", func(t *testing.T) {
-		m := NewFilterDateModel(title, from, to)
+		m := NewDateModel(tab, title, from, to)
+		assert.Equal(t, m.Tab, tab)
 		assert.Equal(t, m.Title, title)
 		assert.Equal(t, m.fromInput.Placeholder, fromString)
 		assert.Equal(t, m.toInput.Placeholder, toString)
@@ -109,7 +111,7 @@ func TestFilterDateModel_GetValue(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			m := NewFilterDateModel(tt.name, time.Time{}, time.Time{})
+			m := NewDateModel("Tab", tt.name, time.Time{}, time.Time{})
 
 			m.fromInput.SetValue(tt.fromValue)
 			m.toInput.SetValue(tt.toValue)
