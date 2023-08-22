@@ -11,7 +11,6 @@ import (
 	"github.com/cli/go-gh"
 
 	"github.com/charmbracelet/bubbles/list"
-	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -24,7 +23,6 @@ type UserModel struct {
 	loaded         bool
 	width          int
 	height         int
-	spinner        spinner.Model
 }
 
 func NewUserModel() UserModel {
@@ -36,12 +34,11 @@ func NewUserModel() UserModel {
 			0,
 			0,
 		),
-		spinner: spinner.New(spinner.WithSpinner(spinner.Pulse)),
 	}
 }
 
 func (m UserModel) Init() tea.Cmd {
-	return tea.Batch(checkLoginStatus, m.spinner.Tick)
+	return checkLoginStatus
 }
 
 func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -88,10 +85,6 @@ func (m UserModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			return orgModel, orgModel.GetRepositories
 		}
-
-	default:
-		m.spinner, cmd = m.spinner.Update(msg)
-		return m, cmd
 	}
 
 	m.list, cmd = m.list.Update(msg)
@@ -104,7 +97,7 @@ func (m UserModel) View() string {
 		return fmt.Sprintln("You are not authenticated try running `gh auth login`. Press q to quit.")
 	}
 	if m.Authenticating {
-		return fmt.Sprintf("%s Authenticating with github", m.spinner.View())
+		return "Authenticating with github ..."
 	}
 
 	return style.AppStyle.Render(m.list.View())

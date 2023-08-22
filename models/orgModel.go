@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"log"
 
 	"hub-bub/consts"
@@ -12,7 +11,6 @@ import (
 
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/list"
-	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/cli/go-gh"
@@ -37,7 +35,6 @@ type OrgModel struct {
 	height  int
 	loaded  bool
 	getting bool
-	spinner spinner.Model
 }
 
 func (m OrgModel) NewRepoSelectMsg() messages.RepoSelectMsg {
@@ -59,7 +56,6 @@ func NewOrgModel(title string, width, height int) OrgModel {
 		repoList:  list.New([]list.Item{}, list.NewDefaultDelegate(), width/2, height),
 		Filters:   []structs.Filter{},
 		getting:   true,
-		spinner:   spinner.New(spinner.WithSpinner(spinner.Pulse)),
 	}
 }
 
@@ -133,7 +129,7 @@ func (m *OrgModel) listFocusedAndNotFiltering() bool {
 }
 
 func (m OrgModel) Init() tea.Cmd {
-	return m.spinner.Tick
+	return nil
 }
 
 func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -196,16 +192,12 @@ func (m OrgModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	if m.getting {
-		m.spinner, cmd = m.spinner.Update(msg)
-	}
-
 	return m, cmd
 }
 
 func (m OrgModel) View() string {
 	if m.getting {
-		return fmt.Sprintf("%s getting repos ...", m.spinner.View())
+		return "getting repos ..."
 	}
 
 	var repoList = style.AppStyle.Width(half(m.width)).Render(m.repoList.View())

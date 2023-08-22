@@ -1,6 +1,9 @@
 package structs
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
 type FilterInt struct {
 	Tab  string
@@ -21,10 +24,6 @@ func (f FilterInt) GetName() string {
 	return f.Name
 }
 
-func (f FilterInt) GetType() reflect.Type {
-	return reflect.TypeOf(f.From)
-}
-
 func (f FilterInt) Matches(setting Setting) bool {
 	if setting.Type != reflect.TypeOf(f.From) {
 		return false
@@ -36,5 +35,5 @@ func (f FilterInt) Matches(setting Setting) bool {
 }
 
 func (f FilterInt) String() string {
-	return f.Name
+	return fmt.Sprintf("%s > %s between %d and %d", f.Tab, f.Name, f.From, f.To)
 }

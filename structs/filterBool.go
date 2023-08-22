@@ -1,6 +1,9 @@
 package structs
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
 type FilterBool struct {
 	Tab   string
@@ -20,10 +23,6 @@ func (f FilterBool) GetName() string {
 	return f.Name
 }
 
-func (f FilterBool) GetType() reflect.Type {
-	return reflect.TypeOf(f.Value)
-}
-
 func (f FilterBool) Matches(setting Setting) bool {
 	if setting.Type != reflect.TypeOf(f.Value) {
 		return false
@@ -33,5 +32,5 @@ func (f FilterBool) Matches(setting Setting) bool {
 }
 
 func (f FilterBool) String() string {
-	return f.Name
+	return fmt.Sprintf("%s > %s = %s", f.Tab, f.Name, YesNo(f.Value))
 }

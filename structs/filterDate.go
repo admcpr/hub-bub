@@ -1,6 +1,7 @@
 package structs
 
 import (
+	"fmt"
 	"reflect"
 	"time"
 )
@@ -24,10 +25,6 @@ func (f FilterDate) GetName() string {
 	return f.Name
 }
 
-func (f FilterDate) GetType() reflect.Type {
-	return reflect.TypeOf(f.From)
-}
-
 func (f FilterDate) Matches(setting Setting) bool {
 	if setting.Type != reflect.TypeOf(f.From) {
 		return false
@@ -39,5 +36,5 @@ func (f FilterDate) Matches(setting Setting) bool {
 }
 
 func (f FilterDate) String() string {
-	return f.Name
+	return fmt.Sprintf("%s > %s between %s and %s", f.Tab, f.Name, f.From.Format("2006-01-02"), f.To.Format("2006-01-02"))
 }
