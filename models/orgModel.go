@@ -13,7 +13,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/cli/go-gh"
+	"github.com/cli/go-gh/v2/pkg/api"
 	graphql "github.com/cli/shurcooL-graphql"
 )
 
@@ -211,7 +211,7 @@ func (m OrgModel) View() string {
 }
 
 func (m OrgModel) GetRepositories() tea.Msg {
-	client, err := gh.GQLClient(nil)
+	client, err := api.DefaultGraphQLClient()
 	if err != nil {
 		return messages.AuthenticationErrorMsg{Err: err}
 	}

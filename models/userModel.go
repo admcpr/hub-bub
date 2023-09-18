@@ -8,10 +8,9 @@ import (
 	"hub-bub/structs"
 	"hub-bub/style"
 
-	"github.com/cli/go-gh"
-
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/cli/go-gh/v2/pkg/api"
 )
 
 type UserModel struct {
@@ -120,7 +119,7 @@ func buildOrgListModel(organisations []structs.Organisation, width, height int, 
 }
 
 func checkLoginStatus() tea.Msg {
-	client, err := gh.RESTClient(nil)
+	client, err := api.DefaultRESTClient()
 	if err != nil {
 		return messages.AuthenticationErrorMsg{Err: err}
 	}
@@ -136,7 +135,7 @@ func checkLoginStatus() tea.Msg {
 }
 
 func getOrganisations() tea.Msg {
-	client, err := gh.RESTClient(nil)
+	client, err := api.DefaultRESTClient()
 	if err != nil {
 		return messages.AuthenticationErrorMsg{Err: err}
 	}
